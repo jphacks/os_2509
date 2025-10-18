@@ -1,7 +1,6 @@
 /*
  * Web Speech API を使用した音声認識ロジック
  * file: app.js
- * (位置情報取得機能を追加)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,23 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage: document.getElementById('error-message'),
         },
 
-        // // --- 状態管理 ---
-        // state: {
-        //     isRecognizing: false, // アプリとして認識中かどうかの状態
-        //     finalTranscript: '',
-        //     ignoreOnend: false, // 意図的な停止時に onend を無視するフラグ
-        //     currentLatitude: null,  // (追加) 現在の緯度
-        //     currentLongitude: null, // (追加) 現在の経度
-        // },
-
         // --- 状態管理 ---
         state: {
             isRecognizing: false, // アプリとして認識中かどうかの状態
             finalTranscript: '',
             ignoreOnend: false, // 意図的な停止時に onend を無視するフラグ
-            currentLatitude: null,  // (追加) 現在の緯度
-            currentLongitude: null, // (追加) 現在の経度
-            locationIntervalId: null, // (★ これを追加 ★)
         },
 
         recognition: null,
@@ -57,12 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // (追加) 位置情報が使えるかも確認
-            if (!navigator.geolocation) {
-                console.warn("このブラウザは位置情報取得に対応していません。");
-                // エラー表示も可能だが、ここではコンソール警告のみ
-            }
-
             this.recognition = new SpeechRecognition();
             this.configureRecognition();
             this.bindEvents();
@@ -72,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
         configureRecognition() {
             this.recognition.lang = this.config.lang;
             this.recognition.interimResults = true;
+            // モバイル環境で continuous: false の方が安定しやすいため、条件分岐を残す
             this.recognition.continuous = this.config.platform.isMobile ? false : true;
         },
 
@@ -109,54 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.updateUI('waiting');
                     return;
                 }
-                
-                // (変更) 'not-allowed' (マイク拒否) の場合、位置情報拒否も考慮
-                let errorMsg = `エラー: ${event.error}`;
-                if (event.error === 'not-allowed') {
-                    errorMsg = 'マイクの使用が許可されていません。ブラウザの設定を確認してください。';
-                }
 
-                this.updateUI('error', errorMsg);
+                this.updateUI('error', `エラー: ${event.error}`);
                 this.state.ignoreOnend = true;
             };
 
             this.recognition.onresult = (event) => {
                 this.handleRecognitionResult(event);
             };
-        },
-
-        // --- (関数追加) 位置情報取得ロジック ---
-        getLocation() {
-            // 以前の位置情報をクリア
-            this.state.currentLatitude = null;
-            this.state.currentLongitude = null;
-
-            if (navigator.geolocation) {
-                console.log("位置情報を取得中...");
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        this.state.currentLatitude = position.coords.latitude;
-                        this.state.currentLongitude = position.coords.longitude;
-                        console.log(`位置情報取得成功: ${this.state.currentLatitude}, ${this.state.currentLongitude}`);
-                    },
-                    (error) => {
-                        // 位置情報取得が失敗または拒否されても、音声認識は続行
-                        console.warn(`位置情報の取得に失敗しました: ${error.message}`);
-                        let errorMsg = `位置情報の取得に失敗 (${error.code})。`;
-                        if (error.code === 1) { // PERMISSION_DENIED
-                           errorMsg = '位置情報の使用が許可されていません。日記には位置が記録されません。';
-                        }
-                        // UIにエラーを短時間表示するなども可能
-                    },
-                    {
-                        enableHighAccuracy: true, // 高精度
-                        timeout: 10000,           // 10秒タイムアウト
-                        maximumAge: 0             // キャッシュを使用しない
-                    }
-                );
-            } else {
-                console.warn("このブラウザは位置情報取得に対応していません。");
-            }
         },
 
         toggleRecognition() {
@@ -169,75 +111,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         startRecognition() {
             if (this.state.isRecognizing) return;
-            
-            // // --- (追加) 認識開始時に位置情報を取得 ---
-            // this.getLocation(); // ← 1秒間隔で取得するため、これはコメントアウトでOKです
-            // // ----------------------------------------
-
-            // --- (★追加) 1秒ごとの位置情報保存を開始 ---
-            if (this.state.locationIntervalId) {
-                clearInterval(this.state.locationIntervalId);
-            }
-            // 1000ms = 1秒
-            this.state.locationIntervalId = setInterval(() => {
-                this.sendPeriodicLocation();
-            }, 1000); 
-            // ----------------------------------------
-
             this.state.isRecognizing = true;
             this.state.finalTranscript = this.dom.finalTranscript.textContent;
             this.dom.interimTranscript.textContent = '';
             this.dom.errorDisplay.classList.add('hidden');
             this.state.ignoreOnend = false;
-            
             try {
                 this.recognition.start();
             } catch (e) {
                 console.error("認識開始時にエラーが発生しました。", e);
                 this.updateUI('error', 'マイクへのアクセス権を確認してください。');
                 this.state.isRecognizing = false;
-
-                // --- (★ 修正点 ★) ---
-                // エラー時にも必ずインターバルを停止する
-                if (this.state.locationIntervalId) {
-                    clearInterval(this.state.locationIntervalId);
-                    this.state.locationIntervalId = null;
-                }
-                // -------------------------
             }
         },
 
         stopRecognition() {
             if (!this.state.isRecognizing) return;
-
-            // --- (★ 修正点 ★) ---
-            // 1秒ごとの保存を停止
-            if (this.state.locationIntervalId) {
-                clearInterval(this.state.locationIntervalId);
-                this.state.locationIntervalId = null;
-            }
-            // -------------------------
-
             this.state.isRecognizing = false;
             this.state.ignoreOnend = true;
 
             // 確定テキストをサーバーに送信
             const currentText = this.state.finalTranscript + (this.dom.interimTranscript.textContent || '');
-            
-            // --- (変更) テキストがある場合のみ送信処理 ---
             if (currentText.trim().length > 0) {
-                // (変更) sendDataToPHP を呼び出す
-                this.sendDataToPHP(currentText.trim());
-                
+                this.sendTranscriptToPHP(currentText);
                 this.dom.finalTranscript.textContent = currentText.trim();
                 this.dom.interimTranscript.textContent = '';
                 this.state.finalTranscript = currentText.trim();
-            } else {
-                // テキストがない場合は、位置情報もリセット
-                this.state.currentLatitude = null;
-                this.state.currentLongitude = null;
             }
-            // --------------------------------------------
 
             // iOS向けの停止ワークアラウンド
             if (this.config.platform.isIOS) {
@@ -257,39 +157,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
 
-        // --- (変更) 関数名を変更し、位置情報も送信 ---
-        sendDataToPHP(text) {
-            console.log(`サーバーにデータを送信中...`);
-            
-            const latitude = this.state.currentLatitude;
-            const longitude = this.state.currentLongitude;
-
-            // FormData (URLSearchParams) を使ってデータを準備
-            const formData = new URLSearchParams();
-            formData.append('sound_text', text);
-
-            // 位置情報が取得できている場合のみ追加
-            if (latitude !== null && longitude !== null) {
-                formData.append('latitude', latitude);
-                formData.append('longitude', longitude);
-                console.log(`送信データ: テキストあり, 位置情報 (${latitude}, ${longitude})`);
-            } else {
-                console.log(`送信データ: テキストあり, 位置情報なし`);
-            }
-
-            // (変更) 送信先PHPファイルを 'save_data.php' に
-            fetch('save_data.php', { 
+        sendTranscriptToPHP(text) {
+            console.log(`サーバーにデータを送信中... テキスト: "${text.substring(0, 20)}..."`);
+            fetch('save_transcript.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: formData.toString() // URLSearchParams を文字列化
+                body: `sound_text=${encodeURIComponent(text)}`
             })
                 .then(response => {
                     if (!response.ok) {
                         console.error('サーバー応答エラー:', response.status);
                     }
-                    return response.json(); // (変更) PHPからJSONで応答を受け取る
+                    return response.text();
                 })
                 .then(data => {
                     console.log('サーバー応答詳細:', data);
@@ -297,61 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(error => {
                     console.error('データの送信中にエラーが発生しました:', error);
                 });
-            
-            // 送信後、位置情報をリセット
-            this.state.currentLatitude = null;
-            this.state.currentLongitude = null;
-        },
-
-        sendPeriodicLocation() {
-            if (!navigator.geolocation) {
-                console.warn("[Interval] Geolocation is not supported.");
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-
-                    // --- (★ 修正点 ★) ---
-                    // 状態も更新して、最後の保存 (sendDataToPHP) で使えるようにする
-                    this.state.currentLatitude = lat;
-                    this.state.currentLongitude = lon;
-                    // -------------------------
-
-                    console.log(`[Interval] Sending location: ${lat}, ${lon}`);
-
-                    const formData = new URLSearchParams();
-                    formData.append('latitude', lat);
-                    formData.append('longitude', lon);
-                    // ★注: ここでは sound_text は送信しない
-
-                    fetch('save_data.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: formData.toString()
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status !== 'success' || !data.saved.db0_location) {
-                            console.warn('[Interval] Failed to save location.', data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('[Interval] Error sending location:', error);
-                    });
-                },
-                (error) => {
-                    // エラーが出てもUIは止めず、コンソールに警告のみ
-                    console.warn(`[Interval] Could not get location: ${error.message}`);
-                },
-                { 
-                    enableHighAccuracy: true, // 高精度
-                    timeout: 5000,            // 5秒タイムアウト
-                    maximumAge: 0             // キャッシュしない
-                }
-            );
         },
 
         handleRecognitionResult(event) {
@@ -362,8 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (event.results[i].isFinal) {
                     if (confidence > 0) {
-                        // (変更) 句点を自動で追加（文脈に応じて調整可）
-                        this.state.finalTranscript += transcript.trim() + '。';
+                        this.state.finalTranscript += transcript + '。';
                     }
                 } else {
                     interimTranscript += transcript;
@@ -382,23 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (e) { /* ignore */ }
             }
 
-            // --- (★ 修正点 ★) ---
-            // 1秒ごとの保存を停止
-            if (this.state.locationIntervalId) {
-                clearInterval(this.state.locationIntervalId);
-                this.state.locationIntervalId = null;
-            }
-            // -------------------------
-
             this.state.finalTranscript = '';
             this.dom.finalTranscript.textContent = '';
             this.dom.interimTranscript.textContent = '';
             this.dom.errorDisplay.classList.add('hidden');
             this.updateUI('stopped');
-            
-            // (追加) クリア時に位置情報もリセット
-            this.state.currentLatitude = null;
-            this.state.currentLongitude = null;
         },
 
         updateUI(state, message = '') {
