@@ -1,0 +1,256 @@
+/*
+ * 絵日記テーマ用 CSSファイル
+ * file: style.css
+ */
+
+/* ====================================
+ * 1. ベース設定とフォント
+ * ==================================== */
+
+:root {
+    --color-paper: #FFFBEB; /* 淡いクリーム色 (紙のイメージ) */
+    --color-bg: #E0F7FA;    /* 明るい水色 (空のイメージ) */
+    --color-primary: #F48FB1; /* ピンク (メインボタン) */
+    --color-primary-hover: #F06292;
+    --color-stop: #EF5350;    /* 赤 (停止/録音中) */
+    --color-stop-hover: #E53935;
+    --color-secondary: #90A4AE; /* グレー (クリアボタン) */
+    --color-secondary-hover: #78909C;
+    --color-text: #37474F;    /* 濃い青みがかったグレー */
+    --color-interim: #607D8B; /* 中間テキスト */
+    --color-error-bg: #FFEBEE;
+    --color-error-border: #EF9A9A;
+    --border-radius-lg: 12px;
+}
+
+body {
+    font-family: 'Kaisei Opti', 'Noto Sans JP', sans-serif; /* 手書き風フォントを優先 */
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ====================================
+ * 2. レイアウト (日記の紙)
+ * ==================================== */
+
+.diary-container {
+    max-width: 600px;
+    width: 100%;
+    margin: auto;
+    /* ページの少し浮いた感じを表現 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 0 0 3px var(--color-secondary);
+    border-radius: var(--border-radius-lg);
+    background-color: var(--color-paper);
+}
+
+.diary-paper {
+    padding: 30px;
+    background-color: var(--color-paper);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+    box-sizing: border-box;
+    /* 内側の柔らかい影 */
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ====================================
+ * 3. ヘッダーとステータス
+ * ==================================== */
+
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 2px dashed var(--color-secondary);
+    padding-bottom: 15px;
+}
+
+.diary-title {
+    font-family: 'Mochiy Pop P One', sans-serif; /* 太い手書き風 */
+    font-size: 1.8rem;
+    color: var(--color-text);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.status-text {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+
+/* ステータスライトアニメーション */
+.status-light {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    border: 2px solid var(--color-text);
+}
+
+.recognizing {
+    background-color: var(--color-stop);
+    box-shadow: 0 0 10px var(--color-stop);
+    animation: pulse 1.5s infinite;
+}
+
+.waiting {
+    background-color: var(--color-bg);
+    box-shadow: 0 0 6px var(--color-bg);
+    border-color: #3b82f6; /* 青色を保持 */
+}
+
+.stopped {
+    background-color: var(--color-secondary);
+    border-color: var(--color-text);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ====================================
+ * 4. ボタン (コントロール)
+ * ==================================== */
+
+.control-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.diary-button {
+    flex-grow: 1;
+    font-family: 'Mochiy Pop P One', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 0px rgba(0, 0, 0, 0.2); /* 押しボタン風の影 */
+}
+
+.diary-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+}
+
+.primary-btn {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.stop-btn {
+    background-color: var(--color-stop);
+    color: white;
+}
+
+.stop-btn:hover {
+    background-color: var(--color-stop-hover);
+}
+
+.secondary-btn {
+    background-color: var(--color-secondary);
+    color: white;
+}
+
+.secondary-btn:hover {
+    background-color: var(--color-secondary-hover);
+}
+
+/* ====================================
+ * 5. 認識結果エリア
+ * ==================================== */
+
+.transcript-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-title {
+    font-family: 'Kaisei Opti', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-left: 5px;
+    border-left: 5px solid var(--color-primary); /* ノートの左端の線 */
+}
+
+.transcript-box {
+    flex-grow: 1;
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    padding: 20px;
+    border: 1px solid #CFD8DC;
+    font-size: 1.1rem;
+    overflow-y: auto;
+    /* ノート風の罫線を追加 */
+    background-image: linear-gradient(to bottom, #ECEFF1 1px, transparent 1px);
+    background-size: 100% 30px; /* 30pxごとに罫線 */
+    line-height: 30px;
+    min-height: 200px;
+}
+
+.final-text {
+    color: var(--color-text);
+    font-weight: 400;
+    /* 最初の段落の行頭を少しインデント */
+    text-indent: 1.5em; 
+}
+
+.interim-text {
+    color: var(--color-interim);
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+/* ====================================
+ * 6. エラーメッセージ
+ * ==================================== */
+
+.error-box {
+    background-color: var(--color-error-bg);
+    border: 2px solid var(--color-error-border);
+    color: var(--color-stop);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.error-title {
+    font-weight: 700;
+    margin-bottom: 5px;
+    font-family: 'Mochiy Pop P One', sans-serif;
+}
+
+.error-tip {
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.hidden {
+    display: none;
+}

@@ -1,137 +1,54 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
-    <title>音声認識＆DB保存</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
-        h1 { color: #333; }
-        button { font-size: 1.2em; padding: 10px 20px; margin: 10px; cursor: pointer; border: none; border-radius: 5px; }
-        #startButton { background-color: #4CAF50; color: white; }
-        #stopButton { background-color: #f44336; color: white; }
-        #status { font-weight: bold; margin: 20px 0; min-height: 1.5em; }
-        #resultText { background: #f4f4f4; border: 1px solid #ddd; padding: 15px; min-height: 100px; text-align: left; border-radius: 5px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おしゃべり絵日記メーカー</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kaisei+Opti:wght@400;700&family=Mochiy+Pop+P+One&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
 
-    <h1>🎙️ 音声認識 テスト</h1>
-    <p>「録音開始」ボタンを押し、マイクに向かって話してください。</p>
-    
-    <button id="startButton">録音開始</button>
-    <button id="stopButton" disabled>録音停止</button>
+    <main class="diary-container">
+        <div class="diary-paper">
+            <div class="header-section">
+                <h1 class="diary-title">おしゃべり絵日記メーカー 🖍️</h1>
+                <div id="status-indicator" class="status-indicator">
+                    <div id="status-light" class="status-light stopped"></div>
+                    <span id="status-text" class="status-text">停止中</span>
+                </div>
+            </div>
 
-    <div id="status">待機中...</div>
-    <div id="resultText"></div>
+            <div class="control-section">
+                <button id="toggle-btn" class="diary-button primary-btn">
+                    話して絵日記を作成
+                </button>
+                <button id="clear-btn" class="diary-button secondary-btn">
+                    クリア
+                </button>
+            </div>
 
-    <script>
-        // ブラウザがWeb Speech APIに対応しているかチェック
-        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!window.SpeechRecognition) {
-            alert("お使いのブラウザは音声認識に対応していません。Google Chromeなどをお試しください。");
-        }
+            <div id="error-display" class="error-box hidden" role="alert">
+                <p class="error-title">エラー発生！</p>
+                <p id="error-message"></p>
+                <p class="error-tip">再試行するか、ブラウザ設定を確認してください。</p>
+            </div>
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'ja-JP'; // 言語を日本語に設定
-        recognition.interimResults = true; // 認識の途中結果も取得する
-        recognition.continuous = true; // 継続的に認識を行う
+            <div class="transcript-section">
+                <h2 class="section-title">今日のできごと:</h2>
+                <div id="transcript-container" class="transcript-box">
+                    <p id="final-transcript" class="final-text"></p>
+                    <p id="interim-transcript" class="interim-text"></p>
+                </div>
+            </div>
+        </div>
+    </main>
 
-        const startButton = document.getElementById('startButton');
-        const stopButton = document.getElementById('stopButton');
-        const statusDiv = document.getElementById('status');
-        const resultTextDiv = document.getElementById('resultText');
-
-        let finalTranscript = ''; // 確定したテキスト
-
-        recognition.onstart = () => {
-            statusDiv.textContent = '認識中... マイクに話しかけてください';
-            startButton.disabled = true;
-            stopButton.disabled = false;
-        };
-
-        recognition.onend = () => {
-            statusDiv.textContent = '認識停止。';
-            startButton.disabled = false;
-            stopButton.disabled = true;
-        };
-
-        recognition.onresult = (event) => {
-            let interimTranscript = ''; // 暫定のテキスト
-            finalTranscript = ''; // 確定テキストをリセット
-
-            for (let i = 0; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    // 確定したテキスト
-                    finalTranscript += transcript;
-                } else {
-                    // 暫定のテキスト
-                    interimTranscript += transcript;
-                }
-            }
-
-            // 確定したテキストをDBに保存
-            if (finalTranscript) {
-                console.log("確定テキスト:", finalTranscript);
-                // サーバーに送信
-                saveToDB(finalTranscript);
-                // 表示を更新
-                resultTextDiv.innerHTML += `<div><strong>確定:</strong> ${finalTranscript}</div>`;
-            }
-            
-            // 画面には暫定テキストも表示（操作感向上のため）
-            statusDiv.textContent = `認識中... [暫定]: ${interimTranscript}`;
-        };
-
-        recognition.onerror = (event) => {
-            statusDiv.textContent = 'エラーが発生しました: ' + event.error;
-            startButton.disabled = false;
-            stopButton.disabled = true;
-        };
-
-        // 録音開始ボタン
-        startButton.onclick = () => {
-            finalTranscript = ''; // テキストをリセット
-            resultTextDiv.innerHTML = ''; // 表示をリセット
-            recognition.start();
-        };
-
-        // 録音停止ボタン
-        stopButton.onclick = () => {
-            recognition.stop();
-        };
-
-        // サーバー(save_text.php)にテキストを送信する関数
-        async function saveToDB(text) {
-            statusDiv.textContent = 'DBに保存中...';
-
-            const params = new URLSearchParams();
-            params.append('soundtext', text); // 'soundtext'というキーでテキストをセット
-
-            try {
-                const response = await fetch('save_audio_text.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params
-                });
-                
-                const result = await response.json(); // PHPからのJSONレスポンスを待つ
-
-                if (result.status === 'success') {
-                    statusDiv.textContent = `「${text}」をDBに保存しました！`;
-                    console.log('DB保存成功:', result);
-                } else {
-                    statusDiv.textContent = 'DB保存に失敗しました: ' + result.message;
-                    console.error('DB保存失敗:', result.message);
-                }
-            } catch (error) {
-                statusDiv.textContent = 'サーバーとの通信に失敗しました。';
-                console.error('Fetchエラー:', error);
-            }
-        }
-    </script>
-
+    <script src="assets/js/app.js"></script>
 </body>
+
 </html>
