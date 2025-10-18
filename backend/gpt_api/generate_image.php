@@ -20,7 +20,6 @@ $dbname     = "back_db1"; // あなたのデータベース名
 $prompt = "";
 $sourceId = 0;
 $sourceDate = '';
-$sourceLocation = '';
 
 // データベースに接続
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -29,36 +28,21 @@ if ($conn->connect_error) {
 }
 echo "データベースに正常に接続しました。\n";
 
-// ---- ステップA: db2から最新のプロンプト(soundsum)と関連情報を取得 ----
+// ---- db2から最新のID, Date, プロンプト(soundsum)を取得 ----
 $sql_db2 = "SELECT id, date, soundsum FROM db2 ORDER BY id DESC LIMIT 1";
 $result_db2 = $conn->query($sql_db2);
 
 if ($result_db2 && $result_db2->num_rows > 0) {
     $row_db2 = $result_db2->fetch_assoc();
-    $sourceId = $row_db2["id"];
+    $sourceId   = $row_db2["id"];
     $sourceDate = $row_db2["date"];
-    $prompt = $row_db2["soundsum"];
+    $prompt     = $row_db2["soundsum"];
     echo "db2テーブルからプロンプトを取得しました (ID: {$sourceId})。\n";
 } else {
     $conn->close();
     die("エラー: db2テーブルにデータが見つかりませんでした。\n");
 }
-
-// ---- ステップB: 取得したIDを元に、db1から場所(location)を取得 ----
-$sql_db1 = "SELECT location FROM db1 WHERE id = ?";
-$stmt_db1 = $conn->prepare($sql_db1);
-$stmt_db1->bind_param("i", $sourceId);
-$stmt_db1->execute();
-$result_db1 = $stmt_db1->get_result();
-if ($result_db1 && $result_db1->num_rows > 0) {
-    $row_db1 = $result_db1->fetch_assoc();
-    $sourceLocation = $row_db1['location'];
-    echo "db1テーブルから場所を取得しました: {$sourceLocation}\n";
-} else {
-    $conn->close();
-    die("エラー: db1テーブルで対応する場所が見つかりませんでした (ID: {$sourceId})。\n");
-}
-$stmt_db1->close();
+// この時点では接続を閉じない
 
 
 // 4. APIキーの準備とOpenAIクライアントの初期化
@@ -82,7 +66,7 @@ echo "====================\n";
 try {
     $response = $client->images()->create([
         'model' => 'dall-e-3', 'prompt' => $prompt, 'n' => 1,
-        'size' => '960x1280', 
+        'size' => '1024x1024', // DALL-E 3でサポートされているサイズ
         'quality' => 'standard',
     ]);
     $imageUrl = $response->data[0]->url;
@@ -116,14 +100,16 @@ if ($imageData !== null) {
     if ($check_result->num_rows > 0) {
         echo "ID: {$sourceId} は既にdb3に存在するため、処理をスキップしました。\n";
     } else {
-        // プリペアドステートメントでデータを挿入
-        $insert_sql = "INSERT INTO db3 (id, date, sentence, place, image) VALUES (?, ?, ?, ?, ?)";
+        // ★★★ 修正1: INSERT文をid, date, imageのみに変更 ★★★
+        $insert_sql = "INSERT INTO db3 (id, date, image) VALUES (?, ?, ?)";
         $stmt_insert = $conn->prepare($insert_sql);
-        // bind_paramの最後の"b"はBLOBデータを送ることを意味します
+        
         $null = NULL; // send_long_data用
-        $stmt_insert->bind_param("isssb", $sourceId, $sourceDate, $prompt, $sourceLocation, $null);
+        // ★★★ 修正2: bind_paramをid, date, imageに対応するように変更 ★★★
+        $stmt_insert->bind_param("isb", $sourceId, $sourceDate, $null);
+        
         // 大きなデータを安全に送信
-        $stmt_insert->send_long_data(4, $imageData);
+        $stmt_insert->send_long_data(2, $imageData);
         
         if ($stmt_insert->execute()) {
             echo "db3テーブルへのデータ保存が成功しました！\n";

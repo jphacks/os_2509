@@ -2,47 +2,65 @@
 
 // 1. ライブラリと環境変数の読み込み
 // --------------------------------------------------
-// Composerでインストールしたライブラリを読み込みます
-require __DIR__ . '/vendor/autoload.php';
-
-// .envファイルから環境変数を読み込みます
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+require __DIR__ . '\vendor\autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/env');
 $dotenv->load();
 
 
-// 2. APIキーの準備
+// 2. データベース接続情報
 // --------------------------------------------------
-// .envファイルからAPIキーを取得します
-$apiKey = $_ENV['OPENAI_API_KEY'];
+$servername = "localhost";
+$username   = "root";
+$password   = "";
+$dbname     = "back_db1"; // あなたのデータベース名
 
-// APIキーが設定されているか確認します
+
+// 3. db2テーブルから最新のIDとプロンプトを取得
+// --------------------------------------------------
+$longText = ""; // プロンプト用の変数
+$sourceId = 0;  // 更新対象のIDを保存する変数
+
+// データベースに接続
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("データベース接続エラー: " . $conn->connect_error . "\n");
+}
+echo "データベースに正常に接続しました。\n";
+
+// ---- db2から最新のIDとsoundsumを1件取得 ----
+$sql = "SELECT id, soundsum FROM db2 ORDER BY id DESC LIMIT 1";
+$result = $conn->query($sql);
+
+if ($result && $result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $sourceId = $row["id"];       // IDを取得
+    $longText = $row["soundsum"]; // soundsumを$longText変数に格納
+    echo "db2テーブルからプロンプトを取得しました！ (ID: {$sourceId})\n";
+} else {
+    $conn->close();
+    die("エラー: db2テーブルにデータが見つかりませんでした。\n");
+}
+// この時点では接続を閉じない
+
+
+// 4. APIキーの準備とOpenAIクライアントの初期化
+// --------------------------------------------------
+$apiKey = $_ENV['OPENAI_API_KEY'];
 if (empty($apiKey) || $apiKey === "sk-...") {
+    $conn->close();
     die("エラー: .envファイルに有効なOPENAI_API_KEYが設定されていません。\n");
 }
-
-// OpenAIのクライアントを初期化します
 $client = OpenAI::client($apiKey);
 
 
-// 3. 要約したいテキストと指示の設定
+// 5. AIへの指示の設定
 // --------------------------------------------------
-// ★★★ ここに要約したい文章を入力してください ★★★
-$longText = "1. 朝、縦列で並びみんなに「おはよう！」と言った場面
-2. 運動場で先生とおにごっこをして遊んでいる場面
-3. お昼、ふかろからおにぎりを出して食べたり友達と分け合った場面
-4. 飛行機の絵を書いて先生からほめられた場面と、帰り道でみんなと「さようなら！」と挨拶を交わす場面
-
-背景には、幼稚園の風景を入れます。それぞれの子供たちはかわいらしい制服を着ています。朝と帰りの風景では、幼稚園の建物や緑豊かな運動場、遊具などを描きましょう。遊んでいる場面では、活発に動き回る子供たちや笑顔の先生を、そしてお昼は楽しくお弁当を食べる子供たちとおにぎり、その周りにお弁当の中身を描きます。絵を描いている場面では、子供たちが楽しそうに色とりどりのクレヨンで絵を描く様子と、黄色の飛行機の絵、そして先生が微笑みながらほめる様子を描きます。
-
-明るくやさしい色合い、水彩画風、子どもの絵日記のようなタッチで，それぞれのイベントを**1つの区画に描く**構成で、必ず**4区画の1枚の画像**として集約する。また，画像内に文字はいりません．";
-
-// AIへの指示（システムメッセージ）
-$systemInstruction = $systemInstruction = <<<EOT
+$systemInstruction = <<<EOT
 あなたは日本の小学生・幼稚園生向けの「絵日記」のアシスタントです。
 ユーザーから与えられるのは以下の情報です：
 1. 画像生成用のプロンプト（絵の内容）
-2. 日付（例：2025年10月19日）
-3. 土地情報（幼稚園）
+2. 日付
+3. 土地情報
 
 次の手順で文章を作成してください：
 
@@ -57,34 +75,55 @@ $systemInstruction = $systemInstruction = <<<EOT
 EOT;
 
 
-
-
-echo "テキストの要約を開始します...\n";
+// 6. APIの実行と結果の取得
+// --------------------------------------------------
+$summary = ''; // 生成された文章を格納する変数
+echo "絵日記の文章を生成します...\n";
 
 try {
-    // テキスト生成（チャット）APIを呼び出します
     $response = $client->chat()->create([
-        // 'model' => 'gpt-3.5-turbo', // テキスト生成用のモデル
-        'model' => 'gpt-4', // 高精度テキスト生成用のモデル
-
+        'model' => 'gpt-4',
         'messages' => [
-            // AIの役割や前提条件を指示
             ['role' => 'system', 'content' => $systemInstruction],
-            // 処理してほしいテキストを渡す
             ['role' => 'user', 'content' => $longText],
         ],
     ]);
-
-    // 応答から要約テキストを取り出します
     $summary = $response->choices[0]->message->content;
-
-    // 結果を表示します
-    echo "要約が完了しました！\n";
+    echo "文章が生成されました！\n";
     echo "====================\n";
     echo $summary . "\n";
     echo "====================\n";
 
 } catch (Exception $e) {
-    // エラーが発生した場合の処理
-    echo "エラーが発生しました: " . $e->getMessage() . "\n";
+    $conn->close();
+    die("APIエラーが発生しました: " . $e->getMessage() . "\n");
 }
+
+
+// 7. db3テーブルのsentenceコラムを更新
+// --------------------------------------------------
+echo "db3テーブルを更新します (対象ID: {$sourceId})...\n";
+
+// プリペアドステートメントで安全にデータを更新
+$update_sql = "UPDATE db3 SET sentence = ? WHERE id = ?";
+$update_stmt = $conn->prepare($update_sql);
+// 型を指定: s = string (sentence), i = integer (id)
+$update_stmt->bind_param("si", $summary, $sourceId);
+
+if ($update_stmt->execute()) {
+    // 実際に更新された行があるか確認
+    if ($update_stmt->affected_rows > 0) {
+        echo "db3テーブルのsentenceコラムの更新が成功しました！\n";
+    } else {
+        echo "更新対象のID: {$sourceId} がdb3に見つかりませんでした。\n";
+    }
+} else {
+    echo "エラー (db3 update): " . $update_stmt->error . "\n";
+}
+$update_stmt->close();
+
+
+// 8. データベース接続を閉じる
+// --------------------------------------------------
+$conn->close();
+echo "全ての処理が完了しました。\n";
