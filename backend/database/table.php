@@ -43,7 +43,6 @@ $sql2 = "CREATE TABLE IF NOT EXISTS db2 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date DATETIME NOT NULL,
     soundsum TEXT NOT NULL,
-    place VARCHAR(255) NOT NULL
 )";
 
 // db3テーブル作成
@@ -51,7 +50,6 @@ $sql3 = "CREATE TABLE IF NOT EXISTS db3 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date DATETIME NOT NULL,
     sentence TEXT NOT NULL,
-    place VARCHAR(255) NULL,
     image MEDIUMBLOB NULL
 )";
 

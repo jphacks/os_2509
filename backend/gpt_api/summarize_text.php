@@ -1,7 +1,5 @@
 <?php
 
-
-
 // 1. ライブラリと環境変数の読み込み
 // --------------------------------------------------
 require __DIR__ . '\vendor\autoload.php';
@@ -17,13 +15,12 @@ $password   = "";
 $dbname     = "back_db1"; // 正しいデータベース名
 
 
-// 3. データベースから最新日付の全データを取得し、テキストを結合
+// 3. データベースから元データを取得
 // --------------------------------------------------
 $sourceId = 0;
 $sourceDate = '';
 $sourceSoundtext = '';
 $sourceLocation = '';
-$targetDate = '';
 
 // データベースに接続
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -32,53 +29,21 @@ if ($conn->connect_error) {
 }
 echo "データベースに正常に接続しました。\n";
 
-// ---- ステップ1: 最新のレコードの日付を取得 ----
-$latest_date_sql = "SELECT date FROM db1 ORDER BY id DESC LIMIT 1";
-$result_date = $conn->query($latest_date_sql);
+// ---- db1からid, date, soundtext, locationをまとめて取得 ----
+$sql_db1 = "SELECT id, date, soundtext, location FROM db1 ORDER BY id DESC LIMIT 1";
+$result_db1 = $conn->query($sql_db1);
 
-if ($result_date && $result_date->num_rows > 0) {
-    $latest_date_row = $result_date->fetch_assoc();
-    // 日付部分だけを抽出 (例: '2025-10-18')
-    $targetDate = substr($latest_date_row['date'], 0, 10);
-    echo "処理対象の日付: {$targetDate}\n";
+if ($result_db1 && $result_db1->num_rows > 0) {
+    $row_db1 = $result_db1->fetch_assoc();
+    $sourceId        = $row_db1["id"];
+    $sourceDate      = $row_db1["date"];
+    $sourceSoundtext = $row_db1["soundtext"];
+    $sourceLocation  = $row_db1["location"];
+    echo "db1テーブルから元データを取得しました (ID: {$sourceId})。\n";
 } else {
     $conn->close();
     die("エラー: db1テーブルにデータが見つかりませんでした。\n");
 }
-
-// ---- ステップ2: 取得した日付に合致する全てのレコードを取得 ----
-$sql_db1 = "SELECT id, date, soundtext, location FROM db1 WHERE DATE(date) = ? ORDER BY id ASC";
-$stmt = $conn->prepare($sql_db1);
-$stmt->bind_param("s", $targetDate);
-$stmt->execute();
-$result_db1 = $stmt->get_result();
-echo "{$targetDate}付のデータを{$result_db1->num_rows}件見つけました。\n";
-
-$allSoundtexts = []; // 複数のテキストを格納する配列
-$isFirstRow = true;  // ループの最初の行を判定するフラグ
-
-while ($row_db1 = $result_db1->fetch_assoc()) {
-    // 取得したレコードの中で最新のID、日付、場所を代表として保存
-    // (ORDER BY id ASCなので、最後のループの値が最新になる)
-    $sourceId       = $row_db1["id"];
-    $sourceDate     = $row_db1["date"];
-    $sourceLocation = $row_db1["location"];
-    
-    // soundtextを配列に追加
-    $allSoundtexts[] = $row_db1["soundtext"];
-}
-$stmt->close();
-
-// ---- ステップ3: 取得した全てのsoundtextを結合 ----
-if (!empty($allSoundtexts)) {
-    // 配列の要素を改行2つでつなげて、1つのテキストにする
-    $sourceSoundtext = implode("\n\n", $allSoundtexts);
-    echo "テキストを結合しました (代表ID: {$sourceId})。\n";
-} else {
-    $conn->close();
-    die("エラー: 対象日のデータからテキストを取得できませんでした。\n");
-}
-// この時点では接続を閉じない
 
 
 // 4. APIキーの準備とOpenAIクライアントの初期化
@@ -106,10 +71,8 @@ $systemInstruction = <<<EOT
 2.  **背景の描写**:
     選んだイベントを描く際は、その出来事が実際に起こった場所（例：公園、水族館、おうち）が正確にわかるように背景を描写してください。
 
-
 3.  **イラストの構成とスタイル**:
     - 選んだ4つのイベントは、それぞれを1つの区画に描く構成で、必ず**4区画に分割された1枚の画像**としてください。
-    - 各イベントで絵にするのは1つのことだけです．
     - イラストのタッチは、明るくやさしい色合いの**水彩画風**で、**子どもの絵日記**のような雰囲気でお願いします。
 
 4.  **出力形式**:
@@ -122,7 +85,7 @@ EOT;
 
 // 6. APIの実行と結果の取得
 // --------------------------------------------------
-$summaryText = ''; // 要約文用の変数を初期化
+$summaryText = '';
 echo "OpenAI APIへのリクエストを開始します...\n";
 
 try {
@@ -149,30 +112,43 @@ try {
 // --------------------------------------------------
 echo "db2テーブルに処理結果を保存します...\n";
 
-// 同じIDが既に存在するか確認 (重複挿入を防ぐため)
-$check_sql = "SELECT id FROM db2 WHERE id = ?";
-$check_stmt = $conn->prepare($check_sql);
-$check_stmt->bind_param("i", $sourceId);
-$check_stmt->execute();
-$check_result = $check_stmt->get_result();
+// ---- ステップA: db2テーブルで次に使用可能な一番若いIDを探す ----
+$nextId = 1; // デフォルト値を1に設定
 
-if ($check_result->num_rows > 0) {
-    echo "ID: {$sourceId} は既にdb2に存在するため、処理をスキップしました。\n";
-} else {
-    // プリペアドステートメントで安全にデータを挿入
-    $insert_sql = "INSERT INTO db2 (id, date, soundsum, place) VALUES (?, ?, ?, ?)";
-    $insert_stmt = $conn->prepare($insert_sql);
-    // 型を指定: i = integer, s = string
-    $insert_stmt->bind_param("isss", $sourceId, $sourceDate, $summaryText, $sourceLocation);
+// このSQLは、連番になっているID (例: 1, 2, 3) の次の番号 (4) か、
+// 途中に空きがある場合 (例: 1, 3, 4) のその番号 (2) を見つけます。
+$find_id_sql = "
+    SELECT MIN(t1.id) + 1 AS next_available_id
+    FROM db2 AS t1
+    LEFT JOIN db2 AS t2 ON t1.id + 1 = t2.id
+    WHERE t2.id IS NULL
+";
+$result_id = $conn->query($find_id_sql);
+$row_id = $result_id->fetch_assoc();
 
-    if ($insert_stmt->execute()) {
-        echo "db2テーブルへのデータ保存が成功しました！\n";
-    } else {
-        echo "エラー (db2): " . $insert_stmt->error . "\n";
-    }
-    $insert_stmt->close();
+// クエリ結果がNULLでなければ (データが1件以上あれば)、そのIDを使用する
+if ($row_id && $row_id['next_available_id'] !== null) {
+    $nextId = $row_id['next_available_id'];
 }
-$check_stmt->close();
+// クエリ結果がNULL (テーブルが空) の場合は、デフォルト値の1が使われる
+
+echo "次に利用可能なIDは {$nextId} です。\n";
+
+// ---- ステップB: 新しく見つけたIDでデータを挿入 ----
+// プリペアドステートメントで安全にデータを挿入
+$insert_sql = "INSERT INTO db2 (id, date, soundsum) VALUES (?, ?, ?)";
+$insert_stmt = $conn->prepare($insert_sql);
+
+// 型を指定: i = integer, s = string
+$insert_stmt->bind_param("iss", $nextId, $sourceDate, $summaryText);
+
+if ($insert_stmt->execute()) {
+    echo "db2テーブルへのデータ保存が成功しました！ (新しいID: {$nextId})\n";
+} else {
+    // 主キー重複などのエラーメッセージを表示
+    echo "エラー (db2): " . $insert_stmt->error . "\n";
+}
+$insert_stmt->close();
 
 
 // 8. データベース接続を閉じる
