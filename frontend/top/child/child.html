@@ -1,342 +1,89 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>音声録音システム（位置情報対応）</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .location-input {
-            margin-bottom: 20px;
-        }
-        .location-input label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        .location-input input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-        #recordBtn {
-            background-color: #4CAF50;
-            color: white;
-            width: 100%;
-        }
-        #recordBtn:hover {
-            background-color: #45a049;
-        }
-        #recordBtn.recording {
-            background-color: #f44336;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        #status, #transcript, #position-info {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        #status strong, #transcript strong, #position-info strong {
-            color: #333;
-        }
-        #statusText {
-            color: #666;
-        }
-        #transcriptText {
-            margin-top: 10px;
-            line-height: 1.6;
-            color: #333;
-            min-height: 50px;
-        }
-        #positionText {
-            margin-top: 10px;
-            font-size: 14px;
-            color: #555;
-        }
-        .position-label {
-            display: inline-block;
-            width: 120px;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>おしゃべり えにっき</title>
+
+  <!-- フォント -->
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- スタイル -->
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>音声録音システム</h1>
-        
-        <div class="location-input">
-            <label for="location">場所:</label>
-            <input type="text" id="location" placeholder="例: 会議室A" value="オフィス">
+  <!-- 左上：もどる -->
+  <a href="javascript:void(0)" class="back-btn" id="backBtn">←もどる</a>
+
+  <!-- ▼ ノート背景（まるまんま） -->
+  <div class="page">
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <!-- ▼ コンテンツ -->
+    <main class="content">
+      <!-- 上部に少し余白（背景を見せる） -->
+      <div class="top-gap" aria-hidden="true"></div>
+
+      <!-- タイトル：中央・大きめ（絵文字なし） -->
+      <header class="header-section hero-center">
+        <h1 class="diary-title">おしゃべり えにっき</h1>
+      </header>
+
+      <!-- ステータス：タイトルとボタンの間、横向き・中央配置 -->
+      <div class="status-row">
+        <div id="status-indicator" class="status-indicator">
+          <div id="status-light" class="status-light stopped"></div>
+          <span id="status-text" class="status-text">とまっているよ</span>
         </div>
-        
-        <div style="margin-top: 20px;">
-            <button id="recordBtn">🎤 録音開始</button>
+      </div>
+
+      <!-- エラー（必要時だけ表示） -->
+      <div id="error-display" class="error-box hidden" role="alert">
+        <p class="error-title">エラーが おきたよ</p>
+        <p id="error-message"></p>
+        <p class="error-tip">もういちどためすか、ブラウザの せっていを みなおしてね。</p>
+      </div>
+
+      <!-- 認識結果：画面下の方に寄せ、見やすい枠に -->
+      <section class="transcript-section">
+        <h2 class="section-title">きょうの できごと</h2>
+        <div id="transcript-container" class="transcript-box">
+          <p id="final-transcript" class="final-text"></p>
+          <p id="interim-transcript" class="interim-text"></p>
         </div>
-        
-        <div id="status">
-            <strong>状態:</strong> <span id="statusText">待機中</span>
-        </div>
-        
-        <div id="position-info">
-            <strong>位置情報:</strong>
-            <div id="positionText">取得中...</div>
-        </div>
-        
-        <div id="transcript">
-            <strong>認識されたテキスト:</strong>
-            <div id="transcriptText"></div>
-        </div>
-    </div>
+      </section>
 
-    <script>
-        let recognition;
-        let isRecording = false;
-        let fullTranscript = '';
-        let currentPosition = null;
-        let watchId = null;
+      <!-- 下に押し下げるための可変スペーサ -->
+      <div class="flex-spacer" aria-hidden="true"></div>
 
-        // 位置情報の取得開始
-        function startLocationTracking() {
-            if ('geolocation' in navigator) {
-                const positionText = document.getElementById('positionText');
-                positionText.textContent = '位置情報を取得中...';
-                
-                watchId = navigator.geolocation.watchPosition(
-                    (position) => {
-                        currentPosition = {
-                            timestamp: new Date().toISOString(),
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude,
-                            accuracy: position.coords.accuracy,
-                            altitude: position.coords.altitude,
-                            altitude_accuracy: position.coords.altitudeAccuracy,
-                            heading: position.coords.heading,
-                            speed: position.coords.speed,
-                            source: 'geolocation_api'
-                        };
-                        
-                        // 画面に表示
-                        updatePositionDisplay(currentPosition);
-                    },
-                    (error) => {
-                        console.error('位置情報エラー:', error);
-                        const positionText = document.getElementById('positionText');
-                        positionText.textContent = '位置情報を取得できません: ' + error.message;
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 5000,
-                        maximumAge: 0
-                    }
-                );
-            } else {
-                alert('お使いのブラウザは位置情報に対応していません');
-                const positionText = document.getElementById('positionText');
-                positionText.textContent = 'このブラウザは位置情報に対応していません';
-            }
-        }
+      <!-- ボタン：画面下寄せ・左右中央・同幅 -->
+      <section class="control-section pinned-bottom" aria-label="操作ボタン">
+        <button id="toggle-btn" class="diary-button primary-btn" aria-label="えにっきを つくる">
+          <span class="btn-label">
+            えにっきを<br aria-hidden="true">つくる
+          </span>
+        </button>
+        <button id="clear-btn" class="diary-button secondary-btn" aria-label="ぜんぶけす">
+          <span class="btn-label">ぜんぶけす</span>
+        </button>
+      </section>
+    </main>
+  </div>
 
-        // 位置情報表示の更新
-        function updatePositionDisplay(position) {
-            const positionText = document.getElementById('positionText');
-            const lat = position.latitude.toFixed(6);
-            const lon = position.longitude.toFixed(6);
-            const acc = position.accuracy ? position.accuracy.toFixed(1) : 'N/A';
-            
-            positionText.innerHTML = `
-                <div><span class="position-label">緯度:</span> ${lat}°</div>
-                <div><span class="position-label">経度:</span> ${lon}°</div>
-                <div><span class="position-label">精度:</span> ±${acc}m</div>
-                <div><span class="position-label">更新:</span> ${new Date(position.timestamp).toLocaleTimeString('ja-JP')}</div>
-            `;
-        }
+  <!-- 右下コピーライト -->
+  <div class="copyright">© 2025 つながり日記</div>
 
-        // 位置情報は音声テキスト保存時に一緒に保存されるため、個別保存は不要
-
-        // 位置情報の取得停止
-        function stopLocationTracking() {
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-        }
-
-        // ページ読み込み時に位置情報取得を開始
-        window.addEventListener('load', () => {
-            startLocationTracking();
-        });
-
-        // ページを離れる時に位置情報取得を停止
-        window.addEventListener('beforeunload', () => {
-            stopLocationTracking();
-        });
-
-        // Web Speech API の初期化
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-        } else if ('SpeechRecognition' in window) {
-            recognition = new SpeechRecognition();
-        } else {
-            alert('お使いのブラウザは音声認識に対応していません。Chrome/Edgeをご使用ください。');
-        }
-
-        if (recognition) {
-            recognition.continuous = true; // 連続認識
-            recognition.interimResults = true; // 途中結果も取得
-            recognition.lang = 'ja-JP'; // 日本語
-
-            const recordBtn = document.getElementById('recordBtn');
-            const statusText = document.getElementById('statusText');
-            const transcriptText = document.getElementById('transcriptText');
-            const locationInput = document.getElementById('location');
-
-            // 録音ボタンのクリックイベント
-            recordBtn.addEventListener('click', () => {
-                if (!isRecording) {
-                    startRecording();
-                } else {
-                    stopRecording();
-                }
-            });
-
-            // 録音開始
-            function startRecording() {
-                if (!locationInput.value.trim()) {
-                    alert('場所を入力してください');
-                    return;
-                }
-
-                fullTranscript = '';
-                transcriptText.innerHTML = '';
-                recognition.start();
-                isRecording = true;
-                recordBtn.classList.add('recording');
-                recordBtn.textContent = '⏹️ 録音停止';
-                statusText.textContent = '録音中...';
-            }
-
-            // 録音停止
-            function stopRecording() {
-                recognition.stop();
-                isRecording = false;
-                recordBtn.classList.remove('recording');
-                recordBtn.textContent = '🎤 録音開始';
-                statusText.textContent = '待機中';
-            }
-
-            // 音声認識結果の処理
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-
-                // 確定したテキストをDBに保存
-                if (finalTranscript) {
-                    fullTranscript += finalTranscript;
-                    saveToDatabase(finalTranscript);
-                }
-
-                // 画面に表示
-                transcriptText.innerHTML = fullTranscript + 
-                    '<span style="color: #999;">' + interimTranscript + '</span>';
-            };
-
-            // エラー処理
-            recognition.onerror = (event) => {
-                console.error('音声認識エラー:', event.error);
-                statusText.textContent = 'エラー: ' + event.error;
-                
-                if (event.error === 'no-speech') {
-                    statusText.textContent = '音声が検出されませんでした';
-                } else if (event.error === 'not-allowed') {
-                    alert('マイクへのアクセスが許可されていません');
-                    stopRecording();
-                }
-            };
-
-            // 認識終了時の処理
-            recognition.onend = () => {
-                if (isRecording) {
-                    // 自動で再開(連続録音)
-                    recognition.start();
-                }
-            };
-
-            // DBに保存する関数（音声テキスト + 位置情報）
-            function saveToDatabase(text) {
-                const location = locationInput.value.trim();
-                
-                // 音声テキストと位置情報を一緒に保存
-                const data = {
-                    soundtext: text,
-                    location: location,
-                    position: currentPosition
-                };
-                
-                fetch('../../backend/record_api/save_audio_text.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('保存成功:', data.id);
-                    } else {
-                        console.error('保存失敗:', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('通信エラー:', error);
-                });
-            }
-        }
-    </script>
+  <!-- 機能JS（そのまま） -->
+  <script src="assets/js/app.js"></script>
+  <script>
+    // もどる動作：履歴があれば戻る／なければトップへ
+    document.getElementById('backBtn').addEventListener('click', function(e){
+      e.preventDefault();
+      if (history.length > 1) history.back();
+      else window.location.href = '/';
+    });
+  </script>
 </body>
 </html>
-
