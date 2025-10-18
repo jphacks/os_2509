@@ -1,0 +1,18 @@
+connection_diary/
+├── index.php              (トップページ)
+├── config/
+│   └── config.php        (DB設定)
+├── database/
+│   └── table.php         (テーブル作成)
+├── record/
+│   └── record.html       (音声録音画面)
+└── api/
+    └── save_audio_text.php (保存API)
+
+git init
+git add .
+git commit -m "first commit"
+git remote add origin url
+git checkout -b main
+Switched to a new branch 'main'
+git push origin main
