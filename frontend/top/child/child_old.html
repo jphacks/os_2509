@@ -4,51 +4,409 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>おしゃべり絵日記メーカー</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Web Speech APIによる音声認識デモ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Kaisei+Opti:wght@400;700&family=Mochiy+Pop+P+One&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
         rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            /* iOSでタップ時のハイライトを無効化 */
+        }
+
+        .status-light {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            flex-shrink: 0;
+        }
+
+        .recognizing {
+            background-color: #ef4444;
+            /* red-500 */
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 8px #ef4444;
+        }
+
+        .waiting {
+            background-color: #3b82f6;
+            /* blue-500 */
+        }
+
+        .stopped {
+            background-color: #6b7280;
+            /* gray-500 */
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+    </style>
 </head>
 
-<body>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
 
-    <main class="diary-container">
-        <div class="diary-paper">
-            <div class="header-section">
-                <h1 class="diary-title">おしゃべり絵日記メーカー 🖍️</h1>
-                <div id="status-indicator" class="status-indicator">
+    <main class="container mx-auto p-4 flex-grow flex flex-col">
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 flex flex-col h-full">
+            <div class="flex items-center justify-between mb-4">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">音声で絵日記を作成</h1>
+                <div id="status-indicator" class="flex items-center">
                     <div id="status-light" class="status-light stopped"></div>
-                    <span id="status-text" class="status-text">停止中</span>
+                    <span id="status-text" class="font-medium text-gray-600 dark:text-gray-300">停止中</span>
                 </div>
             </div>
 
-            <div class="control-section">
-                <button id="toggle-btn" class="diary-button primary-btn">
+            <div id="controls" class="flex space-x-2 mb-4">
+                <button id="toggle-btn"
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform active:scale-95">
                     話して絵日記を作成
                 </button>
-                <button id="clear-btn" class="diary-button secondary-btn">
+                <button id="clear-btn"
+                    class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform active:scale-95">
                     クリア
                 </button>
             </div>
 
-            <div id="error-display" class="error-box hidden" role="alert">
-                <p class="error-title">エラー発生！</p>
+            <div id="error-display"
+                class="bg-red-100 dark:bg-red-900 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded-md mb-4 hidden"
+                role="alert">
+                <p class="font-bold">エラー</p>
                 <p id="error-message"></p>
-                <p class="error-tip">再試行するか、ブラウザ設定を確認してください。</p>
+                <p class="mt-2 text-sm">エラー発生時、自動的に停止状態に戻ります。再試行してください。</p>
             </div>
 
-            <div class="transcript-section">
-                <h2 class="section-title">今日のできごと:</h2>
-                <div id="transcript-container" class="transcript-box">
-                    <p id="final-transcript" class="final-text"></p>
-                    <p id="interim-transcript" class="interim-text"></p>
+            <div class="flex-grow flex flex-col bg-gray-50 dark:bg-gray-700 rounded-lg p-4 overflow-hidden">
+                <h2 class="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">絵日記の文章:</h2>
+                <div id="transcript-container"
+                    class="w-full flex-grow bg-white dark:bg-gray-800 rounded-md p-3 overflow-y-auto text-lg leading-relaxed">
+                    <p id="final-transcript"></p>
+                    <p id="interim-transcript" class="text-gray-500"></p>
                 </div>
             </div>
         </div>
     </main>
 
-    <script src="assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const VoiceApp = {
+                // --- 設定項目 ---
+                config: {
+                    lang: 'ja-JP',
+                    platform: {
+                        isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+                        isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
+                    }
+                },
+
+                // --- DOM要素キャッシュ ---
+                dom: {
+                    toggleBtn: document.getElementById('toggle-btn'),
+                    clearBtn: document.getElementById('clear-btn'),
+                    statusLight: document.getElementById('status-light'),
+                    statusText: document.getElementById('status-text'),
+                    finalTranscript: document.getElementById('final-transcript'),
+                    interimTranscript: document.getElementById('interim-transcript'),
+                    errorDisplay: document.getElementById('error-display'),
+                    errorMessage: document.getElementById('error-message'),
+                },
+
+                // --- 状態管理 ---
+                state: {
+                    isRecognizing: false, // アプリとして認識中かどうかの状態
+                    finalTranscript: '',
+                    ignoreOnend: false, // 意図的な停止時に onend を無視するフラグ
+                },
+
+                recognition: null,
+
+                init() {
+                    this.updateUI('stopped');
+
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    if (!SpeechRecognition) {
+                        this.handleUnsupportedBrowser();
+                        return;
+                    }
+
+                    this.recognition = new SpeechRecognition();
+                    this.configureRecognition();
+                    this.bindEvents();
+                    console.log("音声認識アプリの初期化が完了しました。");
+                    console.log("モバイル環境:", this.config.platform.isMobile);
+                },
+
+                configureRecognition() {
+                    this.recognition.lang = this.config.lang;
+                    this.recognition.interimResults = true;
+                    // [重要] モバイルでは continuous: false が安定動作の鍵。
+                    // PCでは true でも比較的安定しているため、利便性を優先。
+                    this.recognition.continuous = this.config.platform.isMobile ? false : true;
+                },
+
+                bindEvents() {
+                    this.dom.toggleBtn.addEventListener('click', () => this.toggleRecognition());
+                    this.dom.clearBtn.addEventListener('click', () => this.clearTranscript());
+
+                    this.recognition.onstart = () => {
+                        console.log('Event: onstart - 認識セッション開始');
+                        // 認識が開始されたら、すぐにマイク待機中の状態にする
+                        this.updateUI('waiting');
+                    };
+
+                    // 新規追加: 認識開始後、実際に音を聞き始めたタイミング
+                    this.recognition.onaudiostart = () => {
+                        console.log('Event: onaudiostart - 音声入力開始');
+                        this.updateUI('recognizing'); // 音声入力開始でUIを「録音中」に変更
+                    };
+
+                    // 新規追加: 音声入力が終了したタイミング
+                    this.recognition.audioend = () => {
+                        console.log('Event: audioend - 音声入力終了');
+                        // continuous: true の場合、認識は続くため UI は recognizing のまま
+                        // continuous: false の場合、onendが呼ばれるので特にUI変更はしない
+                    };
+
+                    this.recognition.onend = () => {
+                        console.log('Event: onend - 認識セッション終了');
+                        // 意図的な停止（stopボタン押下）の場合は、何もしない。
+                        if (this.state.ignoreOnend) {
+                            console.log('onendを意図的に無視します。');
+                            this.state.ignoreOnend = false;
+                            return;
+                        }
+
+                        // [核となるロジック] 
+                        // continuous: false の場合、または何らかの理由で continuous: true が終了した場合、
+                        // アプリが「認識中」の状態であれば、自動的に再開する。
+                        if (this.state.isRecognizing) {
+                            console.log('自動的に認識を再開します...');
+                            // 再開前にUIを待機状態に戻す
+                            this.updateUI('waiting');
+                            this.recognition.start();
+                        } else {
+                            this.updateUI('stopped');
+                        }
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.error('Event: onerror - エラー発生', event.error);
+
+                        // エラーが発生したら、isRecognizingをfalseにし、UIを停止状態に戻す
+                        this.state.isRecognizing = false;
+
+                        // 'no-speech' はモバイルで頻発する。これはバグではなく仕様に近い挙動。
+                        // このエラーが発生しても、onendが後続で呼ばれるため、
+                        // onendの再開ロジックに任せる。UI上はエラーとして表示しない。
+                        if (event.error === 'no-speech') {
+                            console.warn('無音タイムアウト (no-speech)。次のセッションを待機します。');
+                            // onend で自動的に再開されるため、ここでは特別な処理は不要だが、
+                            // 確実に停止状態にならないよう、自動再開を期待する。
+                            this.updateUI('waiting');
+                            return;
+                        }
+
+                        this.updateUI('error', `エラー: ${event.error}`);
+                        this.state.ignoreOnend = true; // エラー時は onend の自動再開を止める
+                    };
+
+                    this.recognition.onresult = (event) => {
+                        this.handleRecognitionResult(event);
+                    };
+                },
+
+                toggleRecognition() {
+                    if (this.state.isRecognizing) {
+                        this.stopRecognition();
+                    } else {
+                        this.startRecognition();
+                    }
+                },
+
+                startRecognition() {
+                    if (this.state.isRecognizing) return;
+                    console.log('認識を開始します...');
+                    this.state.isRecognizing = true;
+                    this.state.finalTranscript = this.dom.finalTranscript.textContent; // 既存のテキストを保持
+                    this.dom.interimTranscript.textContent = '';
+                    this.dom.errorDisplay.classList.add('hidden');
+                    this.state.ignoreOnend = false;
+                    try {
+                        this.recognition.start();
+                    } catch (e) {
+                        console.error("認識開始時にエラーが発生しました。", e);
+                        this.updateUI('error', '認識を開始できませんでした。');
+                        this.state.isRecognizing = false;
+                    }
+                },
+
+                stopRecognition() {
+                    if (!this.state.isRecognizing) return;
+                    console.log('認識を停止します...');
+                    this.state.isRecognizing = false;
+                    this.state.ignoreOnend = true; // ユーザーによる意図的な停止であることを示すフラグ
+
+                    // 確定テキストをサーバーに送信
+                    // interimTranscriptに残っている可能性のある未確定のテキストを確定テキストに追加
+                    const currentText = this.state.finalTranscript + (this.dom.interimTranscript.textContent || '');
+                    if (currentText.trim().length > 0) {
+                        this.sendTranscriptToPHP(currentText);
+                        // 確定テキストの表示を更新（未確定部分も含む）
+                        this.dom.finalTranscript.textContent = currentText.trim();
+                        this.dom.interimTranscript.textContent = '';
+                        this.state.finalTranscript = currentText.trim();
+                    }
+
+                    // [重要ワークアラウンド] (中略) - オリジナルコードのロジックに従い停止処理を実行
+                    if (this.config.platform.isIOS) {
+                        console.log('iOS向けの停止処理を実行します。');
+                        // stop()が即時でないため、一度ダミーでstart()を呼んでからstop()する
+                        try {
+                            this.recognition.start();
+                            setTimeout(() => {
+                                this.recognition.stop();
+                                this.updateUI('stopped');
+                            }, 50);
+                        } catch (e) {
+                            this.recognition.stop();
+                            this.updateUI('stopped');
+                        }
+                    } else {
+                        this.recognition.stop();
+                        this.updateUI('stopped');
+                    }
+                },
+
+                // サーバーへデータを送信するメソッド
+                sendTranscriptToPHP(text) {
+                    console.log(`サーバーにデータを送信中... テキスト: "${text.substring(0, 20)}..."`);
+                    fetch('save_transcript.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `sound_text=${encodeURIComponent(text)}`
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('サーバーへのデータ送信が完了しました。');
+                            } else {
+                                console.error('サーバー応答エラー:', response.status);
+                            }
+                            return response.text();
+                        })
+                        .then(data => {
+                            console.log('サーバー応答詳細:', data);
+                        })
+                        .catch(error => {
+                            console.error('データの送信中にエラーが発生しました:', error);
+                        });
+                },
+
+                handleRecognitionResult(event) {
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        const confidence = event.results[i][0].confidence;
+
+                        // isFinalがtrueでもconfidenceが0の場合があるため(特にAndroid)、両方チェック
+                        if (event.results[i].isFinal) {
+                            if (confidence > 0) {
+                                console.log(`確定結果 (信頼度: ${confidence.toFixed(3)}): ${transcript}`);
+                                this.state.finalTranscript += transcript + '。';
+                            } else {
+                                console.warn(`確定結果を破棄 (信頼度: 0): ${transcript}`);
+                            }
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    this.dom.finalTranscript.textContent = this.state.finalTranscript;
+                    this.dom.interimTranscript.textContent = interimTranscript;
+                },
+
+                clearTranscript() {
+                    // 認識中の場合は停止してからクリア
+                    if (this.state.isRecognizing) {
+                        // 強制停止し、サーバー送信は行わない
+                        this.state.isRecognizing = false;
+                        this.state.ignoreOnend = true;
+                        try {
+                            this.recognition.stop();
+                        } catch (e) { /* ignore */ }
+                    }
+
+                    console.log('テキストをクリアします。');
+                    this.state.finalTranscript = '';
+                    this.dom.finalTranscript.textContent = '';
+                    this.dom.interimTranscript.textContent = '';
+                    this.dom.errorDisplay.classList.add('hidden');
+                    this.updateUI('stopped');
+                },
+
+                updateUI(state, message = '') {
+                    const light = this.dom.statusLight;
+                    light.className = 'status-light'; // reset classes
+                    this.dom.errorDisplay.classList.add('hidden'); // エラー表示をデフォルトで隠す
+
+                    switch (state) {
+                        case 'recognizing':
+                            light.classList.add('recognizing');
+                            this.dom.statusText.textContent = '録音中...話してください';
+                            this.dom.toggleBtn.textContent = '作成を完了する';
+                            this.dom.toggleBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'bg-gray-500', 'hover:bg-gray-600');
+                            this.dom.toggleBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                            break;
+                        case 'waiting':
+                            light.classList.add('waiting');
+                            this.dom.statusText.textContent = 'マイク待機中...';
+                            this.dom.toggleBtn.textContent = '作成を完了する';
+                            this.dom.toggleBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600', 'bg-gray-500', 'hover:bg-gray-600');
+                            this.dom.toggleBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                            break;
+                        case 'stopped':
+                            light.classList.add('stopped');
+                            this.dom.statusText.textContent = '停止中';
+                            this.dom.toggleBtn.textContent = '話して絵日記を作成';
+                            this.dom.toggleBtn.classList.remove('bg-red-500', 'hover:bg-red-600', 'bg-gray-500', 'hover:bg-gray-600');
+                            this.dom.toggleBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                            break;
+                        case 'error':
+                            light.classList.add('stopped');
+                            this.dom.statusText.textContent = 'エラー';
+                            this.dom.errorMessage.textContent = message;
+                            this.dom.errorDisplay.classList.remove('hidden');
+                            this.dom.toggleBtn.textContent = '再試行';
+                            this.dom.toggleBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                            this.dom.toggleBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                            break;
+                    }
+                },
+
+                handleUnsupportedBrowser() {
+                    console.error('このブラウザはWeb Speech APIをサポートしていません。');
+                    this.dom.toggleBtn.disabled = true;
+                    this.dom.clearBtn.disabled = true;
+                    this.updateUI('error', 'お使いのブラウザは音声認識に対応していません。PC版のChromeやEdge、Safariをお試しください。');
+                    this.dom.toggleBtn.textContent = '非対応';
+                }
+            };
+
+            VoiceApp.init();
+        });
+    </script>
 </body>
 
 </html>

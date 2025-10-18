@@ -111,10 +111,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // (変更) 'not-allowed' (マイク拒否) の場合、位置情報拒否も考慮
-                let errorMsg = `エラー: ${event.error}`;
-                if (event.error === 'not-allowed') {
-                    errorMsg = 'マイクの使用が許可されていません。ブラウザの設定を確認してください。';
-                }
+                // let errorMsg = `エラー: ${event.error}`;
+                // if (event.error === 'not-allowed') {
+                //     errorMsg = 'マイクの使用が許可されていません。ブラウザの設定を確認してください。';
+                // }
+
+            // ★ ここから修正・追加 ★
+            if (event.error === 'aborted' && this.state.ignoreOnend) {
+                // 意図的な stopRecognition() の後に発生した aborted エラーを無視
+                console.log("意図的な中断による 'aborted' エラーを無視しました。");
+                this.updateUI('stopped'); // UIだけ停止状態に戻す
+                this.state.ignoreOnend = false;
+                return;
+            }
+            // ★ ここまで修正・追加 ★
 
                 this.updateUI('error', errorMsg);
                 this.state.ignoreOnend = true;
