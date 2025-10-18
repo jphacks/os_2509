@@ -15,6 +15,14 @@ if ($conn->connect_error) {
     die("接続失敗: " . $conn->connect_error);
 }
 
+// db0テーブル作成 (db1と同じ構造)
+$sql0 = "CREATE TABLE IF NOT EXISTS db0 (
+    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    date DATETIME NOT NULL,
+    soundtext TEXT NULL,
+    location VARCHAR(255) NOT NULL
+)";
+
 // db1テーブル作成 (音声テキスト用)
 $sql1 = "CREATE TABLE IF NOT EXISTS db1 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -48,6 +56,12 @@ $sql3 = "CREATE TABLE IF NOT EXISTS db3 (
 )";
 
 // 各テーブルを作成
+if ($conn->query($sql0) === TRUE) {
+    echo "db0テーブルが正常に作成されました<br>";
+} else {
+    echo "db0エラー: " . $conn->error . "<br>";
+}
+
 if ($conn->query($sql1) === TRUE) {
     echo "db1テーブルが正常に作成されました<br>";
 } else {
