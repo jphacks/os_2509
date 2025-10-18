@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>つながり日記</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+  <div class="page">
+    <!-- 装飾 -->
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <!-- コンテンツ -->
+    <div class="content">
+      <!-- 全体を下へオフセット -->
+      <div class="top-gap" aria-hidden="true"></div>
+
+      <h1 class="title">つながり日記</h1>
+
+      <div class="spacer" aria-hidden="true"></div>
+
+      <p class="subtitle">
+        絵とことばで育つ、家族のきずな。<br>
+        毎日の小さな瞬間を、やさしく残せる絵日記アプリ。
+      </p>
+
+      <!-- ボタン（大きめ） -->
+      <div class="grow" aria-hidden="true"></div>
+
+      <div class="btn-area">
+        <a href="../child/child.html" id="writeBtn" class="diary-btn" aria-label="絵日記を書く">
+          <span>✍️　絵日記を書く</span>
+          <!-- 相対パスに修正 -->
+          <img class="icon" src="./assets/img/child.png" alt="麦わら帽子で虫取り網を持つ子どものイラスト">
+          <span class="ink" aria-hidden="true"></span>
+          <span class="trace" aria-hidden="true"></span>
+        </a>
+
+        <a href="../calendar/calendar.html" id="viewBtn" class="diary-btn" aria-label="絵日記を見る">
+          <span>📖　絵日記を見る</span>
+          <!-- 相対パスに修正 -->
+          <img class="icon" src="./assets/img/parent.png" alt="エプロンを着たお母さんのイラスト">
+          <span class="ink" aria-hidden="true"></span>
+          <span class="trace" aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div class="grow-small" aria-hidden="true"></div>
+
+      <!-- 家族の“つながり”イラスト：画像の端をグラデで溶かし、背景も縁でブラー -->
+      <div class="feature">
+        <span class="edge-blur">
+          <!-- 相対パスに修正 -->
+          <img src="./assets/img/child_with_parent.png" alt="家族のつながりを表現したイラスト">
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="copyright">© <span id="y"></span> つながり日記</div>
+
+  <script src="assets/js/app.js"></script>
+
+</body>
+</html>
