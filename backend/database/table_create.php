@@ -200,6 +200,133 @@ if ($result) {
     echo "</table>";
 }
 
+// ステップ9: db0にサンプルデータ（歩行経路）を挿入
+echo "<div class='step'><strong>ステップ9:</strong> db0テーブルにサンプルデータを挿入中...</div>";
+
+try {
+    // 場所の定義（ダミーの緯度経度）
+    $locations = [
+        'home'   => ['lat' => 35.68000000, 'lon' => 139.76000000], // 家
+        'school' => ['lat' => 35.68200000, 'lon' => 139.76300000], // 小学校
+        'park'   => ['lat' => 35.68400000, 'lon' => 139.76100000]  // 公園
+    ];
+
+    // データポイントを格納する配列
+    $dataPoints = [];
+    
+    // 現在時刻を基準にし、キリの良い時間（例: 9:00:00）からスタート
+    $currentTime = new DateTime();
+    $currentTime->setTime((int)$currentTime->format('H'), 0, 0); 
+    
+    $moveInterval = new DateInterval('PT2M'); // 2分の移動間隔
+    $moveSteps = 5; // 移動を5ステップ（計10分）で表現
+
+    // --- 1. 家（スタート） ---
+    $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $locations['home']['lat'], $locations['home']['lon']);
+
+    // --- 2. 家 → 小学校 (10分かけて移動) ---
+    $latStep = ($locations['school']['lat'] - $locations['home']['lat']) / $moveSteps;
+    $lonStep = ($locations['school']['lon'] - $locations['home']['lon']) / $moveSteps;
+    for ($i = 1; $i <= $moveSteps; $i++) {
+        $currentTime->add($moveInterval);
+        $lat = $locations['home']['lat'] + $latStep * $i;
+        $lon = $locations['home']['lon'] + $lonStep * $i;
+        $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $lat, $lon);
+    }
+
+    // --- 3. 小学校（1時間滞在） ---
+    // 滞在中のデータ（15分ごと）
+    $stayDuration = 60; // 60分
+    $stayIntervalMinutes = 15; // 15分間隔
+    for ($i = 0; $i < $stayDuration; $i += $stayIntervalMinutes) {
+        $stayTime = clone $currentTime; // 到着時刻をコピー
+        $stayTime->add(new DateInterval('PT' . $i . 'M'));
+        // 滞在中も少し動く（GPSの揺らぎノイズ）
+        $latNoise = (rand(-5, 5) * 0.00001);
+        $lonNoise = (rand(-5, 5) * 0.00001);
+        $dataPoints[] = sprintf("('%s', %f, %f)", $stayTime->format('Y-m-d H:i:s'), $locations['school']['lat'] + $latNoise, $locations['school']['lon'] + $lonNoise);
+    }
+    // 1時間経過させる
+    $currentTime->add(new DateInterval('PT' . $stayDuration . 'M'));
+    // 小学校出発時刻のデータ
+    $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $locations['school']['lat'], $locations['school']['lon']);
+
+    // --- 4. 小学校 → 公園 (10分かけて移動) ---
+    $latStep = ($locations['park']['lat'] - $locations['school']['lat']) / $moveSteps;
+    $lonStep = ($locations['park']['lon'] - $locations['school']['lon']) / $moveSteps;
+    for ($i = 1; $i <= $moveSteps; $i++) {
+        $currentTime->add($moveInterval);
+        $lat = $locations['school']['lat'] + $latStep * $i;
+        $lon = $locations['school']['lon'] + $lonStep * $i;
+        $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $lat, $lon);
+    }
+
+    // --- 5. 公園（1時間滞在） ---
+    for ($i = 0; $i < $stayDuration; $i += $stayIntervalMinutes) {
+        $stayTime = clone $currentTime;
+        $stayTime->add(new DateInterval('PT' . $i . 'M'));
+        $latNoise = (rand(-5, 5) * 0.00001);
+        $lonNoise = (rand(-5, 5) * 0.00001);
+        $dataPoints[] = sprintf("('%s', %f, %f)", $stayTime->format('Y-m-d H:i:s'), $locations['park']['lat'] + $latNoise, $locations['park']['lon'] + $lonNoise);
+    }
+    // 1時間経過させる
+    $currentTime->add(new DateInterval('PT' . $stayDuration . 'M'));
+    // 公園出発時刻のデータ
+    $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $locations['park']['lat'], $locations['park']['lon']);
+
+    // --- 6. 公園 → 家 (10分かけて移動) ---
+    $latStep = ($locations['home']['lat'] - $locations['park']['lat']) / $moveSteps;
+    $lonStep = ($locations['home']['lon'] - $locations['park']['lon']) / $moveSteps;
+    for ($i = 1; $i <= $moveSteps; $i++) {
+        $currentTime->add($moveInterval);
+        $lat = $locations['park']['lat'] + $latStep * $i;
+        $lon = $locations['park']['lon'] + $lonStep * $i;
+        $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $lat, $lon);
+    }
+
+    // --- 7. 家（1時間滞在） ---
+    for ($i = 0; $i < $stayDuration; $i += $stayIntervalMinutes) {
+        $stayTime = clone $currentTime;
+        $stayTime->add(new DateInterval('PT' . $i . 'M'));
+        $latNoise = (rand(-5, 5) * 0.00001);
+        $lonNoise = (rand(-5, 5) * 0.00001);
+        $dataPoints[] = sprintf("('%s', %f, %f)", $stayTime->format('Y-m-d H:i:s'), $locations['home']['lat'] + $latNoise, $locations['home']['lon'] + $lonNoise);
+    }
+    // 1時間経過
+    $currentTime->add(new DateInterval('PT' . $stayDuration . 'M'));
+    // 滞在終了時刻のデータ
+    $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $locations['home']['lat'], $locations['home']['lon']);
+
+    // --- SQLを構築して実行 ---
+    $sql_insert_data = "INSERT INTO db0 (date, latitude, longitude) VALUES \n" . implode(",\n", $dataPoints);
+
+    if ($conn->query($sql_insert_data) === TRUE) {
+        echo "<p class='success'>✓ db0テーブルにサンプルデータ（歩行経路）を挿入しました (" . count($dataPoints) . "件)</p>";
+    } else {
+        echo "<p class='error'>❌ db0データ挿入エラー: " . $conn->error . "</p>";
+    }
+
+    // 挿入したデータを簡易表示
+    echo "<h2>📊 db0 サンプルデータ（先頭10件）</h2>";
+    $result = $conn->query("SELECT * FROM db0 ORDER BY date ASC LIMIT 10");
+    if ($result) {
+        echo "<table>";
+        echo "<tr><th>id</th><th>date</th><th>latitude</th><th>longitude</th></tr>";
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['date']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['latitude']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['longitude']) . "</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+    }
+
+} catch (Exception $e) {
+    echo "<p class='error'>❌ サンプルデータ作成中にエラーが発生しました: " . $e->getMessage() . "</p>";
+}
+
 $conn->close();
 
 // 完了メッセージ
