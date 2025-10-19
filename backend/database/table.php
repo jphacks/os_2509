@@ -138,7 +138,7 @@ $sql_db3 = "CREATE TABLE db3 (
     date DATETIME NOT NULL,
     sentence TEXT NULL,
     place VARCHAR(255) NULL,
-    image MEDIUMBLOB NULL,
+    image TEXT NULL COMMENT '画像のURLを保存',
     INDEX idx_date (date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='予備テーブル'";

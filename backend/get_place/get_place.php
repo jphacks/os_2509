@@ -171,7 +171,23 @@ class Tracker {
         ];
     }
 
+    // private function avg_speed($pts) {
+    //     $n = count($pts);
+    //     if ($n < 2) return 0;
+    //     $dist = 0;
+    //     for ($i=1; $i<$n; $i++)
+    //         $dist += haversine_m($pts[$i-1][0], $pts[$i-1][1], $pts[$i][0], $pts[$i][1]);
+    //     $dt = max(1, $pts[$n-1][2] - $pts[0][2]);
+    //     return $dist / $dt;
+    // }
+    // (変更後)
     private function avg_speed($pts) {
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // ↓↓↓↓↓↓ この行を追加 ↓↓↓↓↓↓
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        $pts = array_values($pts); // 配列のキーを 0, 1, 2... に振り直す
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        
         $n = count($pts);
         if ($n < 2) return 0;
         $dist = 0;

@@ -8,176 +8,58 @@
   />
   <title>つながり日記 – 絵日記カレンダー</title>
 
-  <!-- 元ページと同じフォント -->
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
 
   <style>
-    /* ===== 背景＆レイアウト：元コード準拠 ===== */
     :root{
-      --ink: #0b1320;
-      --paper: #fffef9;
-      --rule: rgba(0, 64, 160, .10);
-      --margin: #ff6b6b;
-      --accent: #2e6aff;
-      --spine: #e9e0d2;
-      --spine-shadow: rgba(0,0,0,.18);
-
+      --ink:#0b1320; --paper:#fffef9; --rule:rgba(0,64,160,.10);
+      --margin:#ff6b6b; --accent:#2e6aff; --spine:#e9e0d2; --spine-shadow:rgba(0,0,0,.18);
       --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
-      --btn-icon: clamp(52px, 12vmin, 72px);
-      --hero-h: clamp(150px, 26vh, 260px);
-
-      /* iOSでも安定するようsvh系に寄せる */
+      --btn-icon: clamp(52px, 12vmin, 72px); --hero-h: clamp(150px, 26vh, 260px);
       --top-shift: clamp(4vmin, 8vmin, 12vmin);
-
-      /* 今回の追加：ボード幅＆ピン〜ボードまでの落差 */
-      --board-w: min(96%, 520px);
-      --rope-drop: clamp(90px, 16vmin, 180px);
+      --board-w: min(96%, 520px); --rope-drop: clamp(90px, 16vmin, 180px);
     }
-
-    html, body { height: 100%; width:100%; margin: 0; padding: 0; overflow: hidden; }
-    *, *::before, *::after { box-sizing: border-box; }
-
+    html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden}
+    *,*::before,*::after{box-sizing:border-box}
     body{
-      color: var(--ink);
-      font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
-      background: var(--paper);
-      min-height: 100dvh;
-      -webkit-text-size-adjust: 100%;
-      overscroll-behavior: none;
-      touch-action: pan-x pan-y;
+      color:var(--ink); font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;
+      background:var(--paper); min-height:100dvh; -webkit-text-size-adjust:100%; overscroll-behavior:none; touch-action:pan-x pan-y;
     }
-
     .page{
-      position: relative;
-      min-height: 100svh;
-      height: 100svh;
-      padding: max(1.2vmin, env(safe-area-inset-top))
-               max(1.2vmin, env(safe-area-inset-right))
-               max(1.2vmin, env(safe-area-inset-bottom))
-               max(1.2vmin, env(safe-area-inset-left));
-      box-sizing: border-box;
-      overflow: clip;
+      position:relative; min-height:100svh; height:100svh; padding:max(1.2vmin,env(safe-area-inset-top)) max(1.2vmin,env(safe-area-inset-right)) max(1.2vmin,env(safe-area-inset-bottom)) max(1.2vmin,env(safe-area-inset-left)); overflow:clip;
       background:
-        linear-gradient(90deg, var(--margin) 0 0.5vmin, transparent 0.5vmin)
-          clamp(7vmin, 10vw, 9vmin) 0/100% 100% no-repeat,
+        linear-gradient(90deg, var(--margin) 0 .5vmin, transparent .5vmin) clamp(7vmin,10vw,9vmin) 0/100% 100% no-repeat,
         repeating-linear-gradient(180deg, transparent 0 calc(6.6vmin - 1px), var(--rule) calc(6.6vmin - 1px) 6.6vmin);
     }
-    @supports not (height: 100svh){ .page{ min-height:100vh; height:100vh; } }
-
-    .spine{ position: absolute; left: 0; top: 0; bottom: 0; width: clamp(6vmin, 12vw, 8vmin);
-      background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(0,0,0,.05)),
-                  repeating-linear-gradient(45deg, #efe7d6 0 10px, #e6dcc8 10px 20px);
-      box-shadow: inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow); z-index: 2;
+    @supports not (height:100svh){.page{min-height:100vh;height:100vh}}
+    .spine{position:absolute;left:0;top:0;bottom:0;width:clamp(6vmin,12vw,8vmin);
+      background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(0,0,0,.05)),repeating-linear-gradient(45deg,#efe7d6 0 10px,#e6dcc8 10px 20px);
+      box-shadow:inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow); z-index:2;
     }
-    .spine::before{ content:""; position:absolute; left: 50%; top: 1.2vmin; bottom: 1.2vmin; width: 2px;
-      transform: translateX(-50%);
-      background: repeating-linear-gradient(180deg, #c7bca8 0 10px, transparent 10px 18px); opacity: .85;
-    }
-    .punches{ position: absolute; left: clamp(3.6vmin, 6.2vw, 4.4vmin); top: 1vmin; bottom: 1vmin; width: 1.6vmin;
+    .spine::before{content:"";position:absolute;left:50%;top:1.2vmin;bottom:1.2vmin;width:2px;transform:translateX(-50%);
+      background:repeating-linear-gradient(180deg,#c7bca8 0 10px,transparent 10px 18px);opacity:.85}
+    .punches{position:absolute;left:clamp(3.6vmin,6.2vw,4.4vmin);top:1vmin;bottom:1vmin;width:1.6vmin;
       background:
         radial-gradient(circle at 50% 6%, rgba(0,0,0,.18) 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y,
-        radial-gradient(circle at 50% 50%, #ffffff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
-      mix-blend-mode: multiply; opacity:.9; filter: blur(.15px); pointer-events:none; z-index:1;
-    }
-    .tape{ position:absolute; z-index:3; width: clamp(9vmin, 22vw, 16vmin); height: clamp(2.2vmin, 4.2vw, 3vmin);
-      background: repeating-linear-gradient(45deg, #f7e7a7 0 10px, #f3d98b 10px 20px);
-      opacity:.92; box-shadow: 0 0.8vmin 2vmin rgba(0,0,0,.18);
-    }
-    .tape.tl{ top: 1.2vmin; left: clamp(10vmin, 14vw, 12vmin); transform: rotate(-7deg); }
-    .tape.tr{ top: 1.2vmin; right: clamp(1.2vmin, 3vw, 1.6vmin); transform: rotate(5deg); }
-
-    .content{
-      position: relative;
-      z-index: 4;
-      display: flex;
-      flex-direction: column;
-      min-height: 100%;
-      padding-left: var(--content-left);
-      padding-right: clamp(10px, 4vw, 20px);
-      padding-block: clamp(10px, 4.4vmin, 42px);
-      gap: clamp(8px, 2vh, 18px);
-      max-width: 100%;
-      overflow: clip;
-    }
-    .top-gap{ height: var(--top-shift); flex: 0 0 auto; }
-
-    .title{
-      font-family: "Sawarabi Mincho", serif;
-      font-size: clamp(21px, 6.4vw, 30px);
-      letter-spacing: .04em;
-      margin: 0 auto;
-      text-align: center;
-      width: 100%;
-      max-width: 100%;
-    }
-    .spacer{ min-height: clamp(4px, 2.6vh, 16px); flex: 0 0 auto; }
-
-    .copyright{
-      position: fixed;
-      right: max(1.2vmin, env(safe-area-inset-right));
-      bottom: max(1.2vmin, env(safe-area-inset-bottom));
-      color:#2b3452; opacity:.8;
-      font-size: clamp(10px, 3vw, 14px);
-      z-index: 5; pointer-events:none;
-    }
-
-    /* ===== ピン→左右2本の紐→ボード（中にカレンダー） ===== */
-
-    .board-wrap{
-      position: relative;
-      display: grid;
-      place-items: center;
-      width: 100%;
-      margin-top: clamp(14px, 3.2vmin, 24px);
-      margin-bottom: clamp(6px, 1.6vmin, 10px);
-      flex: 1 1 auto;
-      min-height: 0;
-    }
-
-    .pin{
-      position:absolute; z-index:4;
-      top: 0; left: 50%; transform: translateX(-50%);
-      width: 20px; height: 20px; border-radius: 50%;
-      background:#f04b4b;
-      box-shadow:
-        0 2px 4px rgba(0,0,0,.25) inset,
-        0 8px 14px rgba(0,0,0,.22);
-    }
-    .pin::before{
-      content:"";
-      position:absolute; left:50%; top:50%;
-      transform: translate(-50%,-50%);
-      width: 34px; height: 34px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,0,0,.18) 0 42%, transparent 62%);
-      filter: blur(1px);
-      z-index: -1;
-    }
-    .pin::after{
-      content:"";
-      position:absolute; left:50%; transform: translateX(-50%);
-      top: 18px; width: 3px; height: 10px; border-radius:2px;
-      background: linear-gradient(180deg,#777,#c9c9c9);
-      box-shadow: 0 1px 1px rgba(0,0,0,.25);
-    }
-
-    .ropes{
-      position:absolute; z-index:3;
-      left: 0; right: 0; top: 0; height: var(--rope-drop);
-      pointer-events:none;
-      overflow: visible;
-    }
-    .ropes line{
-      stroke: #7b6550;
-      stroke-width: 2.6;
-      stroke-linecap: round;
-      filter: drop-shadow(0 0.5px 0.5px rgba(0,0,0,.25));
-    }
-
+        radial-gradient(circle at 50% 50%, #fff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
+      mix-blend-mode:multiply;opacity:.9;filter:blur(.15px);pointer-events:none;z-index:1}
+    .tape{position:absolute;z-index:3;width:clamp(9vmin,22vw,16vmin);height:clamp(2.2vmin,4.2vw,3vmin);
+      background:repeating-linear-gradient(45deg,#f7e7a7 0 10px,#f3d98b 10px 20px);opacity:.92;box-shadow:0 .8vmin 2vmin rgba(0,0,0,.18)}
+    .tape.tl{top:1.2vmin;left:clamp(10vmin,14vw,12vmin);transform:rotate(-7deg)}
+    .tape.tr{top:1.2vmin;right:clamp(1.2vmin,3vw,1.6vmin);transform:rotate(5deg)}
+    .content{position:relative;z-index:4;display:flex;flex-direction:column;min-height:100%;padding-left:var(--content-left);padding-right:clamp(10px,4vw,20px);padding-block:clamp(10px,4.4vmin,42px);gap:clamp(8px,2vh,18px);overflow:clip}
+    .top-gap{height:var(--top-shift)}
+    .title{font-family:"Sawarabi Mincho",serif;font-size:clamp(21px,6.4vw,30px);letter-spacing:.04em;text-align:center;margin:0 auto}
+    .spacer{min-height:clamp(4px,2.6vh,16px)}
+    .copyright{position:fixed;right:max(1.2vmin,env(safe-area-inset-right));bottom:max(1.2vmin,env(safe-area-inset-bottom));color:#2b3452;opacity:.8;font-size:clamp(10px,3vw,14px);z-index:5;pointer-events:none}
+    .board-wrap{position:relative;display:grid;place-items:center;width:100%;margin-top:clamp(14px,3.2vmin,24px);margin-bottom:clamp(6px,1.6vmin,10px);flex:1 1 auto;min-height:0}
+    .pin{position:absolute;z-index:4;top:0;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#f04b4b;box-shadow:0 2px 4px rgba(0,0,0,.25) inset,0 8px 14px rgba(0,0,0,.22)}
+    .pin::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.18) 0 42%,transparent 62%);filter:blur(1px);z-index:-1}
+    .pin::after{content:"";position:absolute;left:50%;transform:translateX(-50%);top:18px;width:3px;height:10px;border-radius:2px;background:linear-gradient(180deg,#777,#c9c9c9);box-shadow:0 1px 1px rgba(0,0,0,.25)}
+    .ropes{position:absolute;z-index:3;left:0;right:0;top:0;height:var(--rope-drop);pointer-events:none;overflow:visible}
+    .ropes line{stroke:#7b6550;stroke-width:2.6;stroke-linecap:round;filter:drop-shadow(0 .5px .5px rgba(0,0,0,.25))}
     .board{
-      position: relative;
-      width: var(--board-w);
-      border-radius: 16px;
-      padding: clamp(8px, 1.4vh, 12px);
+      position:relative;width:var(--board-w);border-radius:16px;padding:clamp(8px,1.4vh,12px);
       background:
         radial-gradient(8px 8px at 12% 18%, rgba(120,84,54,.28) 20%, transparent 21%),
         radial-gradient(7px 7px at 22% 34%, rgba(90,64,40,.24) 20%, transparent 21%),
@@ -186,127 +68,36 @@
         radial-gradient(9px 9px at 78% 66%, rgba(120,84,54,.28) 20%, transparent 21%),
         radial-gradient(7px 7px at 18% 72%, rgba(90,64,40,.24) 20%, transparent 21%),
         linear-gradient(180deg, #e3c4a0, #caa782);
-      box-shadow: inset 0 3px 8px rgba(0,0,0,.15), 0 16px 28px rgba(20,20,40,.16);
-      display:grid; grid-template-rows: auto 1fr; gap: 8px;
-      margin-top: var(--rope-drop);
-      overflow: hidden;
-
-      /* ここがポイント：残り高さをほぼすべて使う */
-      height: calc(100% - var(--rope-drop));
-      max-height: none;
-      min-height: 0;
+      box-shadow:inset 0 3px 8px rgba(0,0,0,.15), 0 16px 28px rgba(20,20,40,.16);
+      display:grid;grid-template-rows:auto 1fr;gap:8px;margin-top:var(--rope-drop);overflow:hidden;height:calc(100% - var(--rope-drop));
     }
-
-    .cal-head{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: clamp(8px, 1.3vh, 12px);
-      background: #fffdf6;
-      border-radius: 12px;
-      border: 2px solid rgba(10,20,60,.14);
-      box-shadow: 0 2px 0 rgba(255,255,255,.85) inset;
-    }
-    .cal-month{ font-family:"Yomogi", cursive; font-size: clamp(18px, 5vw, 22px); margin: 0 auto; }
-    .nav-btn{
-      appearance:none; border:none; background:#fff;
-      border:2px solid rgba(10,20,60,.15);
-      border-radius:10px; padding:6px 10px; font-size:14px; cursor:pointer;
-    }
-
-    .cal-body{
-      position: relative;
-      background:#fffdf6;
-      border-radius: 12px;
-      border: 2px solid rgba(10,20,60,.14);
-      box-shadow: 0 2px 0 rgba(255,255,255,.85) inset;
-      padding: 6px;
-      display: grid;
-      grid-template-rows: auto 1fr; /* 曜日 + 日グリッド */
-      min-height: 0;
-      overflow: hidden;
-    }
-    .dow-row{
-      display:grid; grid-template-columns: repeat(7, 1fr);
-      gap: 2px; margin-bottom: 2px;
-    }
-    .dow{ text-align:center; font-weight:600; font-size:12px; padding:6px 0; }
-    .dow.sun{ color:#e53935; }
-    .dow.sat{ color:#1769ff; }
-
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-      grid-auto-rows: 1fr;
-      min-height: 0;
-    }
-    .cell{
-      position:relative;
-      background:#fff;
-      border:1px solid rgba(10,20,60,.08);
-      border-radius: 8px;
-      padding: 6px;
-      display:flex; align-items:flex-start; justify-content:flex-start;
-      overflow:hidden;
-    }
-    .cell button{ all:unset; position:absolute; inset:0; cursor:pointer; }
-    .cell .d{ font-size: 14px; font-weight: 600; }
-    .cell.sun .d{ color:#e53935; }
-    .cell.sat .d{ color:#1769ff; }
-
-    /* 季節アイコン（右下） */
-    .cell .emo{ position:absolute; right:4px; bottom:2px; font-size: 16px; opacity:.95; }
-
-    /* 絵日記があるマーク（右上）— デフォルトはSVGで提供。後でinnerHTML差し替え可能 */
-    .cell .mark{
-      position:absolute; right:4px; top:3px;
-      width: 16px; height: 16px;
-      display: inline-grid; place-items: center;
-      border-radius: 4px;
-      background: #2e6aff;
-      box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 1px 4px rgba(0,0,0,.18);
-      overflow: hidden;
-    }
-    .cell .mark svg{
-      width: 12px; height: 12px; display:block;
-      color: #fff;
-    }
-
-    .hint{
-      text-align:center;
-      font-size: clamp(11px, 3.2vw, 12px);
-      opacity:.85;
-      line-height: 1.2;
-      margin-top: clamp(6px, 1.2vmin, 10px);
-    }
-
-    /* スワイプ“指”ヒント（左右の白い丸） */
-    .swipe-hint{
-      position: absolute;
-      top: 50%;
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: 2px solid rgba(30, 40, 70, .35);
-      box-shadow: 0 6px 14px rgba(20,20,40,.22), 0 1px 0 rgba(255,255,255,.7) inset;
-      transform: translateY(-50%) scale(.85);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 3;
-      transition: opacity .12s ease, transform .12s ease;
-    }
-    .swipe-hint.left  { left: 8px;  transform: translate(-18px, -50%) scale(.85); }
-    .swipe-hint.right { right: 8px; transform: translate( 18px, -50%) scale(.85); }
-
-    /* スワイプ時の軽いスライド感 */
-    .slide-left .grid{ animation: slideLeft .24s ease both; }
-    .slide-right .grid{ animation: slideRight .24s ease both; }
-    @keyframes slideLeft{ from{transform:translateX(14px); opacity:.0} to{transform:none; opacity:1} }
-    @keyframes slideRight{ from{transform:translateX(-14px); opacity:.0} to{transform:none; opacity:1} }
+    .cal-head{display:flex;align-items:center;justify-content:space-between;padding:clamp(8px,1.3vh,12px);background:#fffdf6;border-radius:12px;border:2px solid rgba(10,20,60,.14);box-shadow:0 2px 0 rgba(255,255,255,.85) inset}
+    .cal-month{font-family:"Yomogi",cursive;font-size:clamp(18px,5vw,22px);margin:0 auto}
+    .nav-btn{appearance:none;border:none;background:#fff;border:2px solid rgba(10,20,60,.15);border-radius:10px;padding:6px 10px;font-size:14px;cursor:pointer}
+    .cal-body{background:#fffdf6;border-radius:12px;border:2px solid rgba(10,20,60,.14);box-shadow:0 2px 0 rgba(255,255,255,.85) inset;padding:6px;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+    .dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+    .dow{text-align:center;font-weight:600;font-size:12px;padding:6px 0}
+    .dow.sun{color:#e53935}.dow.sat{color:#1769ff}
+    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;grid-auto-rows:1fr}
+    .cell{position:relative;background:#fff;border:1px solid rgba(10,20,60,.08);border-radius:8px;padding:6px;display:flex;align-items:flex-start;overflow:hidden}
+    .cell button{all:unset;position:absolute;inset:0;cursor:pointer}
+    .cell .d{font-size:14px;font-weight:600}
+    .cell.sun .d{color:#e53935}.cell.sat .d{color:#1769ff}
+    .cell .emo{position:absolute;right:4px;bottom:2px;font-size:16px;opacity:.95}
+    .cell .mark{position:absolute;right:4px;top:3px;width:16px;height:16px;display:inline-grid;place-items:center;border-radius:4px;background:#2e6aff;box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 1px 4px rgba(0,0,0,.18)}
+    .cell .mark svg{width:12px;height:12px;color:#fff;display:block}
+    .hint{text-align:center;font-size:clamp(11px,3.2vw,12px);opacity:.85;line-height:1.2;margin-top:clamp(6px,1.2vmin,10px)}
+    .swipe-hint{position:absolute;top:50%;width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid rgba(30,40,70,.35);box-shadow:0 6px 14px rgba(20,20,40,.22),0 1px 0 rgba(255,255,255,.7) inset;transform:translateY(-50%) scale(.85);opacity:0;pointer-events:none;z-index:3;transition:opacity .12s,transform .12s}
+    .swipe-hint.left{left:8px;transform:translate(-18px,-50%) scale(.85)}
+    .swipe-hint.right{right:8px;transform:translate(18px,-50%) scale(.85)}
+    .slide-left .grid{animation:slideLeft .24s ease both}
+    .slide-right .grid{animation:slideRight .24s ease both}
+    @keyframes slideLeft{from{transform:translateX(14px);opacity:0}to{transform:none;opacity:1}}
+    @keyframes slideRight{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
   </style>
 </head>
 <body>
   <div class="page">
-    <!-- 背景装飾 -->
     <div class="spine" aria-hidden="true"></div>
     <div class="punches" aria-hidden="true"></div>
     <div class="tape tl" aria-hidden="true"></div>
@@ -320,14 +111,12 @@
       <div class="board-wrap" id="boardWrap">
         <div class="pin" id="pin" aria-hidden="true"></div>
 
-        <!-- 紐（ピン中心 → ボード左右上角） -->
         <svg class="ropes" id="ropes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <line id="ropeL" x1="50" y1="10" x2="20" y2="90"></line>
           <line id="ropeR" x1="50" y1="10" x2="80" y2="90"></line>
         </svg>
 
         <section class="board" aria-label="吊り下げカレンダー" id="board">
-          <!-- スワイプ“指”ヒント -->
           <div class="swipe-hint left" id="hintLeft"></div>
           <div class="swipe-hint right" id="hintRight"></div>
 
@@ -353,33 +142,21 @@
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
-    // ===== カレンダー描画 =====
-    const startOfWeek = 0; // 日曜始まり
+    const startOfWeek = 0;
     const dowHead = ['日','月','火','水','木','金','土'];
 
-    // 絵日記がある日（例：10/19 を追加）
-    const diaryDates = new Set([
-      '2025-10-19',
-      '2025-10-12',
-      '2025-10-09',
-      '2025-09-28'
-    ]);
+    // ← DBから受け取る「YYYY-MM-DD: [id,...]」のマップ
+    let diaryIndex = {};
+    function hasDiary(dateStr){ return !!diaryIndex[dateStr] && diaryIndex[dateStr].length > 0; }
+    function firstDiaryId(dateStr){ return hasDiary(dateStr) ? diaryIndex[dateStr][0] : null; }
 
     function eventEmoji(y,m,d){
       const md = `${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       switch(md){
-        case '01-01': return '🎍';
-        case '02-14': return '💝';
-        case '03-03': return '🎎';
-        case '04-29': return '🌸';
-        case '05-05': return '🎏';
-        case '07-07': return '🎋';
-        case '08-15': return '🏮';
-        case '09-15': return '🌕';
-        case '10-31': return '🎃';
-        case '12-24': return '🎄';
-        case '12-31': return '🧧';
-        default: return '';
+        case '01-01': return '🎍'; case '02-14': return '💝'; case '03-03': return '🎎';
+        case '04-29': return '🌸'; case '05-05': return '🎏'; case '07-07': return '🎋';
+        case '08-15': return '🏮'; case '09-15': return '🌕'; case '10-31': return '🎃';
+        case '12-24': return '🎄'; case '12-31': return '🧧'; default: return '';
       }
     }
 
@@ -406,7 +183,6 @@
       }
     }
 
-    // デフォルトの“マーク”SVG（絵文字ではない）
     function defaultMarkSVG(){
       return `
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -414,9 +190,7 @@
         </svg>
       `;
     }
-
-    // マーク要素を作る（後でバックエンドで innerHTML 差し替え可）
-    function createMarkEl(iconName = 'default', svgHTML = defaultMarkSVG()){
+    function createMarkEl(iconName='default', svgHTML=defaultMarkSVG()){
       const span = document.createElement('span');
       span.className = 'mark';
       span.dataset.icon = iconName;
@@ -424,10 +198,8 @@
       return span;
     }
 
-    // その月に必要な行だけ描画（6行固定にしない）
-    function renderMonth(y, m){ // m: 1..12
+    function renderMonth(y, m){
       board.classList.remove('slide-left','slide-right');
-
       grid.innerHTML = '';
       monthLabel.textContent = jpMonth(y, m);
 
@@ -436,41 +208,33 @@
       const firstDow = first.getDay();
       const startPad = (firstDow - startOfWeek + 7) % 7;
 
-      // 先頭パディング
       for(let i=0;i<startPad;i++){
         const pad = document.createElement('div');
         pad.className = 'cell';
         grid.appendChild(pad);
       }
 
-      // 実日付
       for(let d=1; d<=lastDate; d++){
         const wd = (startPad + (d-1)) % 7;
         const cell = document.createElement('div');
         cell.className = 'cell' + (wd===0?' sun' : wd===6?' sat':'');
 
-        const num = document.createElement('div');
-        num.className = 'd';
-        num.textContent = d;
+        const num = document.createElement('div'); num.className='d'; num.textContent=d;
+        const emo = document.createElement('div'); emo.className='emo'; emo.textContent = eventEmoji(y,m,d);
+        const dateStr = ymd(y,m,d);
 
-        const emo = document.createElement('div');
-        emo.className = 'emo';
-        emo.textContent = eventEmoji(y, m, d);
-
-        const dateStr = ymd(y, m, d);
-
-        // 絵日記がある日 → 右上に“マーク”（SVG）
         let mark = null;
-        if (diaryDates.has(dateStr)) {
-          mark = createMarkEl('default'); // 必要ならここでSVG差し替え
-        }
+        if (hasDiary(dateStr)) { mark = createMarkEl('default'); }
 
         const btn = document.createElement('button');
         btn.setAttribute('aria-label', `${dateStr}を開く`);
         btn.addEventListener('click', () => {
-          if(diaryDates.has(dateStr)){
-            window.location.href = `entry.html?date=${dateStr}`;
-          }else{
+          if (hasDiary(dateStr)) {
+            const id = firstDiaryId(dateStr);
+            // window.location.href = '/os_2509/frontend/top/parent/entry_api.php?id=' + id;
+            // window.location.href = 'entry_api.php?id=' + id;
+            window.location.href = '/os_2509/frontend/top/parent/parent.html?id=' + id;
+          } else {
             alert('この日付は絵日記が存在しません');
           }
         });
@@ -481,7 +245,6 @@
         grid.appendChild(cell);
       }
 
-      // 行末パディング（行を増やさない）
       const rem = (startPad + lastDate) % 7;
       if(rem !== 0){
         for(let i=rem; i<7; i++){
@@ -491,7 +254,6 @@
         }
       }
 
-      // 紐のレイアウト更新
       layoutRopes();
     }
 
@@ -499,117 +261,101 @@
       viewM += delta;
       if(viewM < 0){ viewM = 11; viewY--; }
       if(viewM > 11){ viewM = 0;  viewY++; }
-
       board.classList.add(delta > 0 ? 'slide-left' : 'slide-right');
       renderMonth(viewY, viewM+1);
     }
 
-    // スワイプ & 指ヒント
     (function attachSwipe(){
-      const host = board;
-      const hintL = document.getElementById('hintLeft');
-      const hintR = document.getElementById('hintRight');
-
-      let sx=0, dx=0, down=false;
-      const threshold = 40;
-
+      const host = board, hintL = document.getElementById('hintLeft'), hintR = document.getElementById('hintRight');
+      let sx=0, dx=0, down=false; const threshold=40;
       function showHints(){
-        const a = Math.min(1, Math.max(0,  dx / threshold));  // 右→左
-        const b = Math.min(1, Math.max(0, -dx / threshold));  // 左→右
-
-        if (a>0){
-          hintLeft.style.opacity = 0.2 + 0.6*a;
-          hintLeft.style.transform = `translate(${(-18 + 18*a).toFixed(1)}px, -50%) scale(${(0.85+0.25*a).toFixed(2)})`;
-        }else{
-          hintLeft.style.opacity = 0;
-          hintLeft.style.transform = `translate(-18px, -50%) scale(.85)`;
-        }
-
-        if (b>0){
-          hintRight.style.opacity = 0.2 + 0.6*b;
-          hintRight.style.transform = `translate(${(18 - 18*b).toFixed(1)}px, -50%) scale(${(0.85+0.25*b).toFixed(2)})`;
-        }else{
-          hintRight.style.opacity = 0;
-          hintRight.style.transform = `translate(18px, -50%) scale(.85)`;
-        }
+        const a=Math.min(1, Math.max(0,  dx/threshold));
+        const b=Math.min(1, Math.max(0, -dx/threshold));
+        if(a>0){ hintLeft.style.opacity=0.2+0.6*a; hintLeft.style.transform=`translate(${(-18+18*a).toFixed(1)}px, -50%) scale(${(0.85+0.25*a).toFixed(2)})`; }
+        else{ hintLeft.style.opacity=0; hintLeft.style.transform=`translate(-18px,-50%) scale(.85)`; }
+        if(b>0){ hintRight.style.opacity=0.2+0.6*b; hintRight.style.transform=`translate(${(18-18*b).toFixed(1)}px, -50%) scale(${(0.85+0.25*b).toFixed(2)})`; }
+        else{ hintRight.style.opacity=0; hintRight.style.transform=`translate(18px,-50%) scale(.85)`; }
       }
-      function clearHints(){
-        hintLeft.style.opacity = 0;
-        hintRight.style.opacity = 0;
-        hintLeft.style.transform = `translate(-18px, -50%) scale(.85)`;
-        hintRight.style.transform = `translate(18px, -50%) scale(.85)`;
-      }
-
-      host.addEventListener('touchstart', e => { down=true; sx = e.touches[0].clientX; dx=0; clearHints(); }, {passive:true});
-      host.addEventListener('touchmove',  e => { if(!down) return; dx = e.touches[0].clientX - sx; showHints(); }, {passive:true});
-      host.addEventListener('touchend',   () => {
-        if(!down) return; down=false;
-        if(dx > threshold) shiftMonth(-1);
-        else if(dx < -threshold) shiftMonth(1);
-        clearHints();
-      }, {passive:true});
+      function clearHints(){ hintLeft.style.opacity=0; hintRight.style.opacity=0; hintLeft.style.transform=`translate(-18px,-50%) scale(.85)`; hintRight.style.transform=`translate(18px,-50%) scale(.85)`; }
+      host.addEventListener('touchstart', e=>{down=true; sx=e.touches[0].clientX; dx=0; clearHints();},{passive:true});
+      host.addEventListener('touchmove',  e=>{if(!down)return; dx=e.touches[0].clientX - sx; showHints();},{passive:true});
+      host.addEventListener('touchend',   ()=>{if(!down)return; down=false; if(dx>threshold)shiftMonth(-1); else if(dx<-threshold)shiftMonth(1); clearHints();},{passive:true});
     })();
 
-    // ピン→左右角への“紐”をSVGで結ぶ
     function layoutRopes(){
-      const wrap  = document.getElementById('boardWrap');
-      const pin   = document.getElementById('pin');
-      const ropes = document.getElementById('ropes');
-      const ropeL = document.getElementById('ropeL');
-      const ropeR = document.getElementById('ropeR');
-      const board = document.getElementById('board');
+      const wrap=document.getElementById('boardWrap');
+      const pin=document.getElementById('pin');
+      const ropes=document.getElementById('ropes');
+      const ropeL=document.getElementById('ropeL');
+      const ropeR=document.getElementById('ropeR');
+      const board=document.getElementById('board');
 
-      const wrapRect  = wrap.getBoundingClientRect();
-      const pinRect   = pin.getBoundingClientRect();
-      const boardRect = board.getBoundingClientRect();
+      const wrapRect=wrap.getBoundingClientRect();
+      const pinRect=pin.getBoundingClientRect();
+      const boardRect=board.getBoundingClientRect();
 
-      const svgW = wrapRect.width;
-      const svgH = Math.max(boardRect.top - wrapRect.top, 10);
+      const svgW=wrapRect.width;
+      const svgH=Math.max(boardRect.top - wrapRect.top, 10);
       ropes.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
-      ropes.style.width  = svgW + 'px';
-      ropes.style.height = svgH + 'px';
+      ropes.style.width=svgW+'px'; ropes.style.height=svgH+'px';
 
-      const pinX = pinRect.left + pinRect.width/2  - wrapRect.left;
-      const pinY = pinRect.top  + pinRect.height   - wrapRect.top;
+      const pinX=pinRect.left + pinRect.width/2 - wrapRect.left;
+      const pinY=pinRect.top + pinRect.height - wrapRect.top;
 
-      const insetX = 12, insetY = 8;
-      const blX = boardRect.left + insetX - wrapRect.left;
-      const brX = boardRect.right - insetX - wrapRect.left;
-      const bY  = boardRect.top + insetY - wrapRect.top;
+      const insetX=12, insetY=8;
+      const blX=boardRect.left + insetX - wrapRect.left;
+      const brX=boardRect.right - insetX - wrapRect.left;
+      const bY =boardRect.top + insetY - wrapRect.top;
 
       ropeL.setAttribute('x1', pinX); ropeL.setAttribute('y1', pinY);
       ropeL.setAttribute('x2', blX ); ropeL.setAttribute('y2', bY  );
-
       ropeR.setAttribute('x1', pinX); ropeR.setAttribute('y1', pinY);
       ropeR.setAttribute('x2', brX ); ropeR.setAttribute('y2', bY  );
     }
 
-    // リサイズや向き変更時にも再計算
-    window.addEventListener('resize', () => { layoutRopes(); }, {passive:true});
+    window.addEventListener('resize', layoutRopes, {passive:true});
     window.addEventListener('orientationchange', () => { setTimeout(layoutRopes, 200); }, {passive:true});
 
-    // 初期描画
-    function init(){
+    async function init(){
       renderDow();
       renderMonth(viewY, viewM+1);
+
+      try{
+        // const url = '/os_2509/frontend/top/calendar/diary_dates.php?ts=' + Date.now();
+        const url = 'diary_dates.php?ts=' + Date.now();
+        const res = await fetch(url, { cache:'no-store', credentials:'same-origin' });
+        if(!res.ok){
+          console.error('diary_dates HTTP error', res.status, await res.text());
+        }else{
+          const json = await res.json();
+          console.log('diary_dates payload:', json);
+
+          if(json.ok && json.days){
+            // ★ 受け取ったキーを “YYYY-MM-DD” に強制正規化（先頭10文字 + trim）
+            const normalized = {};
+            for (const k of Object.keys(json.days)) {
+              const k2 = String(k).trim().slice(0, 10); // "2025-10-17 00:00:00" → "2025-10-17"
+              if (!normalized[k2]) normalized[k2] = [];
+              const arr = Array.isArray(json.days[k]) ? json.days[k] : [json.days[k]];
+              normalized[k2].push(...arr);
+            }
+            diaryIndex = normalized;
+            console.log('normalized diaryIndex keys:', Object.keys(diaryIndex)); // 確認ログ
+            renderMonth(viewY, viewM+1); // マーク反映
+          } else {
+            console.warn('diary_dates unexpected JSON', json);
+          }
+        }
+      }catch(e){
+        console.error('diary_dates fetch error', e);
+      }
+
       layoutRopes();
     }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init, { once:true });
-    } else {
-      init();
-    }
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init, {once:true}); } else { init(); }
 
-    // 前後ボタン
     document.getElementById('prevBtn')?.addEventListener('click', () => shiftMonth(-1));
     document.getElementById('nextBtn')?.addEventListener('click', () => shiftMonth(1));
-
-    /* ===== バックエンド差し替え用メモ =====
-       diaryDates.has(dateStr) が真のときに作る mark 要素は
-       createMarkEl(iconName, svgHTML) で生成しています。
-       例： createMarkEl('pumpkin', '<svg ...>...</svg>')
-       → 任意のSVGを埋め込めます（画像を使うなら <img> でもOK）。
-    */
   </script>
 </body>
 </html>
