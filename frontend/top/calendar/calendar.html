@@ -94,6 +94,9 @@
     .slide-right .grid{animation:slideRight .24s ease both}
     @keyframes slideLeft{from{transform:translateX(14px);opacity:0}to{transform:none;opacity:1}}
     @keyframes slideRight{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
+
+    /* ← 追加：遷移前フェードアウト */
+    .page.leaving { opacity: 0; transition: opacity .18s ease; }
   </style>
 </head>
 <body>
@@ -141,6 +144,9 @@
 
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    // ← 追加：遷移先エントリーページ
+    const ENTRY_PAGE = '/os_2509/frontend/top/parent/parent.html';
 
     const startOfWeek = 0;
     const dowHead = ['日','月','火','水','木','金','土'];
@@ -198,6 +204,21 @@
       return span;
     }
 
+    // ← 追加：安全な遷移ヘルパー（id/date どちらでもOK）
+    function gotoEntry({ id=null, date=null }) {
+      const url = new URL(ENTRY_PAGE, location.origin);
+      if (id != null)   url.searchParams.set('id', String(id));
+      else if (date)    url.searchParams.set('date', date);
+
+      const root = document.querySelector('.page');
+      if (root) {
+        root.classList.add('leaving');
+        setTimeout(()=>{ window.location.href = url.toString(); }, 200);
+      } else {
+        window.location.href = url.toString();
+      }
+    }
+
     function renderMonth(y, m){
       board.classList.remove('slide-left','slide-right');
       grid.innerHTML = '';
@@ -231,7 +252,8 @@
         btn.addEventListener('click', () => {
           if (hasDiary(dateStr)) {
             const id = firstDiaryId(dateStr);
-            window.location.href = '/os_2509/frontend/top/calendar/entry.php?id=' + id;
+            // idがあればidで、無ければdateで遷移（entry.html は両対応）
+            gotoEntry({ id: id ?? null, date: dateStr });
           } else {
             alert('この日付は絵日記が存在しません');
           }
