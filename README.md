@@ -1,4 +1,5 @@
-# サンプル（プロダクト名）
+<img width="491" height="1055" alt="スクリーンショット 2025-10-19 150127" src="https://github.com/user-attachments/assets/56707687-7b28-46a0-b6a2-0e662ec912d3" />
+# つながり日記（プロダクト名）
 
 [![IMAGE ALT TEXT HERE](https://jphacks.com/wp-content/uploads/2025/05/JPHACKS2025_ogp.jpg)](https://www.youtube.com/watch?v=lA9EluZugD8)
 
@@ -13,16 +14,19 @@
 #### 1. 特長1
 プロンプトをよく考えたことによって，生成内容が大きく変わらないように工夫
 #### 2. 特長2
-優しいUI
+子供が作成した絵日記を実際に読んでいるかのような体験
 #### 3. 特長3
+優しいUI。子供が小学校低学年程であることを考慮して，平仮名を多く用い，難しい漢字を削減
 
 ### 解決出来ること
-コミュニケーションの解消や，親戚への子供の成長報告
+コミュニケーションの解消，子供の成長記録・報告
 ### 今後の展望
-対象範囲の拡大や，認知症の人の行動把握
+対象人物の拡大（例えば認知症の方やご老人など）や，その人物の行動把握
+親がリアルタイムに子供の位置を把握
 ### 注力したこと（こだわり等）
 * バックエンドで生成AIを用いた点
-* かわいいUI
+* 日記・絵日記のようなかわいいUI
+* 対象年齢に合った文章生成・画像生成
 
 ## 開発技術
 ### 活用した技術
@@ -34,19 +38,22 @@
 #### フレームワーク・ライブラリ・モジュール
 * Chat GPTのAPI
 * Google MapのAPI
-* 
 
 #### デバイス
-* スマホ
-* 
+* スマートフォン
 
 ### 独自技術
 #### ハッカソンで開発した独自機能・技術
 * 独自で開発したものの内容をこちらに記載してください
+
 * 特に力を入れた部分をファイルリンク、またはcommit_idを記載してください。
 
 * 画像URL
-*https://oaidalleapiprodscus.blob.core.windows.net/private/org-CGHAFBD7DxH9hxLySUadiV4b/user-MBuFkVB98xqcjtvY3JLDQziM/img-G9N1UIlCO15mwzfGFeh201J3.png?st=2025-10-19T04%3A46%3A06Z&se=2025-10-19T06%3A46%3A06Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=67205dde-9780-4119-bbff-6343b48e42b6&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-10-19T04%3A54%3A19Z&ske=2025-10-20T04%3A54%3A19Z&sks=b&skv=2024-08-04&sig=c6HQU6rJVQeChrhFDpe70KZw%2B3pqj2qEE3AOy71HauI%3D
+<img width="488" height="1056" alt="スクリーンショット 2025-10-19 150041" src="https://github.com/user-attachments/assets/c2789bb8-2654-410e-9b34-36ff397d5690" />
 
-https://oaidalleapiprodscus.blob.core.windows.net/private/org-CGHAFBD7DxH9hxLySUadiV4b/user-MBuFkVB98xqcjtvY3JLDQziM/img-yG0cWBWLURDlN7tI6XwV4NZF.png?st=2025-10-19T04%3A21%3A17Z&se=2025-10-19T06%3A21%3A17Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=475fd488-6c59-44a5-9aa9-31c4db451bea&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-10-18T17%3A36%3A40Z&ske=2025-10-19T17%3A36%3A40Z&sks=b&skv=2024-08-04&sig=A7nKiKGnGQ2ygmmHTyyxma3WTAPTniKFEFeDFOfubls%3D
- 
+<img width="485" height="1056" alt="スクリーンショット 2025-10-19 153928" src="https://github.com/user-attachments/assets/c828afdd-9003-4f07-85fe-1c6943915e4e" />
+
+ <img width="490" height="1056" alt="スクリーンショット 2025-10-19 150112" src="https://github.com/user-attachments/assets/9d944958-2fec-4352-831c-b288f8424ac6" />
+
+
+<img width="491" height="1055" alt="スクリーンショット 2025-10-19 150127" src="https://github.com/user-attachments/assets/1f092ba2-5659-4741-8a6e-e4236fd6537c" />
