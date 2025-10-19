@@ -15,7 +15,18 @@ git commit -m "first commit"
 git remote add origin url
 git push -u origin master
 
+composer require openai-php/client
+composer require vlucas/phpdotenv
 
+cd backend/gpt_api 
+# Composerインストーラーをダウンロード
+C:\xampp\php\php.exe -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+# Composerをインストール
+C:\xampp\php\php.exe composer-setup.php
+# インストーラーを削除
+C:\xampp\php\php.exe -r "unlink('composer-setup.php');"
 
-
+# OpenAI PHPクライアントをインストール
+C:\xampp\php\php.exe composer.phar require openai-php/client
+C:\xampp\php\php.exe composer.phar require vlucas/phpdotenv
 
