@@ -2,7 +2,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 // XAMPPの一般的既定（root / パスワード空）。環境に合わせて変更可。
-$mysqli = new mysqli("localhost", "root", "", "back_db1");
+$mysqli = new mysqli("localhost", "backhold", "backhold", "back_db1");
 // 専用ユーザーを使う場合：
 // $mysqli = new mysqli("localhost", "backhold", "backhold", "back_db1");
 

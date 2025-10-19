@@ -10,69 +10,11 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Kosugi+Maru&family=Noto+Emoji&display=swap" rel="stylesheet">
 
-  <!-- 強めにキャッシュ抑止（念のため） -->
-  <meta http-equiv="Cache-Control" content="no-store" />
+    <meta http-equiv="Cache-Control" content="no-store" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <style>
-    :root{
-      --ink:#0b1320;--paper:#fffef9;--rule:rgba(0,64,160,.10);--margin:#ff6b6b;--accent:#2e6aff;--spine:#e9e0d2;--spine-shadow:rgba(0,0,0,.18);
-      --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
-      --right-pad: clamp(10px, 4vw, 20px);
-      --gap: clamp(8px, 2vh, 18px);
-      --note-border: 2px solid rgba(10,20,60,.14);
-      --canvas-w: min(calc(100vw - var(--content-left) - var(--right-pad) - 2vmin),520px);
-      --note-line-w: 1px; --note-line-color: rgba(0,0,80,.20); --note-radius: 8px;
-      --flip-dur: 720ms; --postit:#ffe68a; --postit-shadow: rgba(0,0,0,.18);
-    }
-    html,body{height:100%;width:100%;margin:0;padding:0;overflow-x:hidden}
-    *,*::before,*::after{box-sizing:border-box}
-    body{color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Meiryo",sans-serif;background:var(--paper);-webkit-text-size-adjust:100%;touch-action:pan-x pan-y;min-height:100svh}
-    .page{position:relative;min-height:100svh;padding:max(1.2vmin,env(safe-area-inset-top)) max(1.2vmin,env(safe-area-inset-right)) max(1.2vmin,env(safe-area-inset-bottom)) max(1.2vmin,env(safe-area-inset-left));overflow:clip;
-      background:linear-gradient(90deg,var(--margin) 0 .5vmin,transparent .5vmin) clamp(7vmin,10vw,9vmin) 0/100% 100% no-repeat,repeating-linear-gradient(180deg,transparent 0 calc(6.6vmin - 1px),var(--rule) calc(6.6vmin - 1px) 6.6vmin)}
-    @supports not (height:100svh){.page{min-height:100vh;height:100vh}}
-    .spine{position:absolute;left:0;top:0;bottom:0;width:clamp(6vmin,12vw,8vmin);background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(0,0,0,.05)),repeating-linear-gradient(45deg,#efe7d6 0 10px,#e6dcc8 10px 20px);box-shadow:inset -12px 0 20px rgba(0,0,0,.04),6px 0 12px var(--spine-shadow);z-index:2}
-    .spine::before{content:"";position:absolute;left:50%;top:1.2vmin;bottom:1.2vmin;width:2px;transform:translateX(-50%);background:repeating-linear-gradient(180deg,#c7bca8 0 10px,transparent 10px 18px);opacity:.85}
-    .punches{position:absolute;left:clamp(3.6vmin,6.2vw,4.4vmin);top:1vmin;bottom:1vmin;width:1.6vmin;background:
-      radial-gradient(circle at 50% 6%, rgba(0,0,0,.18) 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y,
-      radial-gradient(circle at 50% 50%, #fff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
-      mix-blend-mode:multiply;opacity:.9;filter:blur(.15px);pointer-events:none;z-index:1}
-    .tape{position:absolute;z-index:3;width:clamp(9vmin,22vw,16vmin);height:clamp(2.2vmin,4.2vw,3vmin);background:repeating-linear-gradient(45deg,#f7e7a7 0 10px,#f3d98b 10px 20px);opacity:.92;box-shadow:0 .8vmin 2vmin rgba(0,0,0,.18)}
-    .tape.tl{top:1.2vmin;left:clamp(10vmin,14vw,12vmin);transform:rotate(-7deg)} .tape.tr{top:1.2vmin;right:clamp(1.2vmin,3vw,1.6vmin);transform:rotate(5deg)}
-    .content{position:relative;z-index:4;display:flex;flex-direction:column;gap:var(--gap);padding-left:var(--content-left);padding-right:var(--right-pad);padding-block:clamp(6px,3.2vmin,28px);max-width:100%}
-    .title{font-family:"Yomogi",cursive;font-size:clamp(24px,8vw,34px);letter-spacing:.04em;margin:0 auto;text-align:center;text-shadow:.12px 0 #172036,-.12px 0 #172036,0 .12px #172036,0 -.12px #172036;margin-top:clamp(10px,2.4vmin,24px)}
-    .title .dow{margin-left:.3em;display:inline-block}
-    .paper{width:var(--canvas-w);margin:0 auto;margin-top:clamp(4px,3vh,24px);display:grid;grid-template-columns:1fr;gap:var(--gap);min-height:0}
-    figure{margin:0}
-    .img-frame{position:relative;width:100%;aspect-ratio:1/1;background:#fff;border:var(--note-border);border-radius:8px;overflow:hidden;display:grid;place-items:center}
-    .img-frame img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center;border-radius:0}
-    .no-image{position:absolute;inset:0;display:grid;place-items:center;font-family:"Yomogi","Kosugi Maru",cursive;font-size:clamp(18px,6vw,28px);color:rgba(20,30,60,.55);
-      background:repeating-linear-gradient(45deg,rgba(0,0,0,.015) 0 12px,rgba(0,0,0,.03) 12px 24px);text-shadow:0 1px 0 rgba(255,255,255,.7);user-select:none;pointer-events:none}
-    .no-image.hidden{display:none}
-    .vertical-note{position:relative;width:100%;aspect-ratio:8/9;border:var(--note-border);border-radius:8px;overflow:hidden;background:#fff}
-    .note-lines{position:absolute;inset:0;pointer-events:none;z-index:0;background:transparent}
-    .vtext{position:absolute;inset:0;writing-mode:vertical-rl;text-orientation:mixed;font-family:"Yomogi","Kosugi Maru","Noto Emoji",cursive;color:var(--ink);
-      font-size:clamp(14px,4.2vw,19px);line-height:1.84;letter-spacing:.03em;overflow:auto;scrollbar-gutter:stable both-edges;text-shadow:.1px 0 #1e2640,-.1px 0 #1e2640,0 .1px #1e2640,0 -.1px #1e2640;font-weight:500;padding-inline-end:6px;padding-block:4px;background:transparent;z-index:1}
-    .vtext p{margin:0 0 .7em 0}
-    .copyright-fixed{position:fixed;right:max(1.2vmin,env(safe-area-inset-right));bottom:max(1.2vmin,env(safe-area-inset-bottom));color:#2b3452;opacity:.8;font-size:clamp(10px,3vw,14px);z-index:10;pointer-events:none}
-    .back-btn{position:fixed;left:max(1.2vmin,env(safe-area-inset-left));top:max(1.2vmin,env(safe-area-inset-top));z-index:12;display:inline-flex;align-items:center;gap:8px;padding:10px 12px;min-width:86px;justify-content:center;
-      color:#25304d;text-decoration:none;font-weight:700;font-family:"Yomogi","Hiragino Maru Gothic ProN","Kosugi Maru",cursive;transform:rotate(-3deg);background:linear-gradient(180deg,var(--postit) 0%,#fff4b6 100%);
-      border:1px solid rgba(0,0,0,.06);border-radius:10px;box-shadow:0 18px 24px var(--postit-shadow),0 2px 0 rgba(255,255,255,.85) inset,0 -1px 0 rgba(0,0,0,.06) inset;isolation:isolate}
-    .back-btn::before{content:"";position:absolute;left:10px;right:10px;top:-7px;height:12px;background:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.03));border-radius:2px;opacity:.35;filter:blur(.2px)}
-    .back-btn::after{content:"";position:absolute;right:0;top:0;width:18px;height:18px;background:linear-gradient(135deg,rgba(0,0,0,.10),rgba(0,0,0,0));clip-path:polygon(0 0,100% 0,100% 100%);transform:translate(1px,-1px);opacity:.22}
-    .back-btn .chev{font-size:18px;line-height:1} .back-btn:active{transform:rotate(-3deg) translateY(1px)}
-    .fade-out{animation:fadeOut .18s ease forwards} .fade-in{animation:fadeIn .12s ease .06s forwards;opacity:0}
-    @keyframes fadeOut{to{opacity:0}} @keyframes fadeIn{to{opacity:1}}
-    .page-curl{position:absolute;width:100vmin;height:100vmin;pointer-events:none;z-index:9;background:
-      radial-gradient(140% 140% at 100% 100%, rgba(0,0,0,.18), rgba(0,0,0,0) 60%),linear-gradient(180deg,#fffefc,#f3efe8);
-      box-shadow:-12px -16px 28px rgba(0,0,0,.20);opacity:.98}
-    .page-curl.right{right:0;bottom:0;transform-origin:bottom right;clip-path:polygon(100% 100%,0 100%,100% 0)}
-    .page-curl.left{left:0;bottom:0;transform-origin:bottom left;clip-path:polygon(0 100%,100% 100%,0 0);box-shadow:12px -16px 28px rgba(0,0,0,.20)}
-    @keyframes curlFromRightBottom{0%{transform:rotateZ(0) rotateX(0) translate(0,0);opacity:.98}55%{transform:rotateZ(-16deg) rotateX(-28deg) translate(-10vmin,-10vmin)}100%{transform:rotateZ(-48deg) rotateX(-72deg) translate(-40vmin,-36vmin);opacity:.08}}
-    @keyframes curlFromLeftBottom{0%{transform:rotateZ(0) rotateX(0) translate(0,0);opacity:.98}55%{transform:rotateZ(16deg) rotateX(-28deg) translate(10vmin,-10vmin)}100%{transform:rotateZ(48deg) rotateX(-72deg) translate(40vmin,-36vmin);opacity:.08}}
-    .anim-right{animation:curlFromRightBottom var(--flip-dur) ease forwards} .anim-left{animation:curlFromLeftBottom var(--flip-dur) ease forwards}
-  </style>
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
   <a href="#" class="back-btn" id="backBtn"><span class="chev">←</span>戻る</a>
@@ -102,243 +44,122 @@
 
   <div class="copyright-fixed">© <span id="y"></span> つながり日記</div>
 
-  <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const titleEl = document.getElementById('title');
+  const imageEl = document.getElementById('entryImage');
+  const textEl = document.getElementById('entryText');
+  const noImageEl = document.getElementById('noImage');
+  const backBtn = document.getElementById('backBtn');
+  document.getElementById('y').textContent = new Date().getFullYear();
 
-    // URL パラメータ
-    const q = new URLSearchParams(location.search || "");
-    const paramId   = q.get('id');
-    const paramDate = q.get('date');
+  // 曜日の日本語配列
+  const dowList = ['日', '月', '火', '水', '木', '金', '土'];
 
-    // API
-    const API = '/os_2509/frontend/top/parent/entry_api.php';
+  // 戻るボタンの処理
+  backBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    // カレンダーページが履歴にあれば戻る、なければ指定のURLへ
+    if (document.referrer && document.referrer.includes('calendar')) {
+      history.back();
+    } else {
+      // カレンダーページのパスを環境に合わせて設定してください
+      window.location.href = '../calendar/calendar.html'; 
+    }
+  });
 
-    // DOM
-    const title = document.getElementById('title');
-    const img   = document.getElementById('entryImage');
-    const text  = document.getElementById('entryText');
-    const lines = document.getElementById('noteLines');
-    const noImg = document.getElementById('noImage');
-    const sheet = document.getElementById('sheet');
-    const book  = document.getElementById('book');
-    const paper = document.getElementById('paper');
+  // URLパラメータを取得
+  const params = new URLSearchParams(window.location.search);
+  const entryId = params.get('id');
+  const entryDate = params.get('date');
 
-    let currentDate = null;
+  // 日付をフォーマットする関数
+  function formatEntryDate(dateStr) {
+    try {
+      const d = new Date(dateStr);
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      const dow = dowList[d.getDay()];
+      return `${m}月${day}日<span class="dow">${dow}曜日</span>`;
+    } catch (e) {
+      return '日付不明<span class="dow">?曜日</span>';
+    }
+  }
 
-    // 先行でタイトルだけ描画（paramDateがあるなら即表示して「消える」体感をなくす）
-    if (paramDate) {
-      title.innerHTML = titleHTML(paramDate);
-      currentDate = paramDate;
+  // エラー表示
+  function showEntryError(message = '絵日記が見つかりません') {
+    titleEl.innerHTML = 'エラー';
+    noImageEl.textContent = message;
+    noImageEl.classList.remove('hidden');
+    imageEl.classList.add('hidden');
+    textEl.textContent = 'データがありませんでした。';
+  }
+
+  // 絵日記データを描画
+  function renderEntry(entry) {
+    if (!entry || !entry.date) {
+      showEntryError();
+      return;
     }
 
-    // Util
-    function titleHTML(yyyy_mm_dd){
-      if(!yyyy_mm_dd) return '—月—日<span class="dow">—曜日</span>';
-      const [y,m,d] = yyyy_mm_dd.split('-').map(n=>parseInt(n,10));
-      const w = '日月火水木金土'[new Date(y, m-1, d).getDay()];
-      return `${m}月${d}日<span class="dow">${w}曜日</span>`;
-    }
-    function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function ymdShift(yyyy_mm_dd, delta){
-      const [y,m,d] = yyyy_mm_dd.split('-').map(n=>parseInt(n,10));
-      const base = new Date(y, m-1, d);
-      base.setDate(base.getDate() + delta);
-      const yy = base.getFullYear(), mm = String(base.getMonth()+1).padStart(2,'0'), dd = String(base.getDate()).padStart(2,'0');
-      return `${yy}-${mm}-${dd}`;
+    // タイトル（日付）
+    titleEl.innerHTML = formatEntryDate(entry.date);
+
+    // 画像
+    if (entry.image) {
+      imageEl.src = entry.image;
+      noImageEl.classList.add('hidden');
+      imageEl.classList.remove('hidden');
+    } else {
+      noImageEl.classList.remove('hidden');
+      imageEl.classList.add('hidden');
     }
 
-    // API: JSON（no-store）
-    async function fetchEntry({id=null, date=null}){
-      const url = new URL(API, location.origin);
-      if (id)   url.searchParams.set('id', id);
-      if (date) url.searchParams.set('date', date);
-      const res = await fetch(url.toString(), { cache:'no-store', credentials:'same-origin' });
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      const json = await res.json();
-      if(!json.ok) throw new Error(json.error || 'unknown error');
-      json.image_url = (json.image_url || '').trim() || null;
-      return json;
+    // 本文
+    textEl.textContent = entry.sentence || '（本文はありません）';
+  }
+
+  // データをフェッチする
+  async function fetchEntry() {
+    if (!entryId && !entryDate) {
+      showEntryError('IDまたは日付が指定されていません');
+      return;
     }
 
-    // 画像：URL直読み＋キャッシュバスター
-    async function setImageFromURL(u){
-      if (!u) {
-        img.removeAttribute('src');
-        noImg.classList.remove('hidden');
-        return false;
+    // get_entry.phpへのパスを構築 (このHTMLファイルと同じ階層にあると仮定)
+    const url = new URL('get_entry.php', window.location.href);
+    if (entryId) {
+      url.searchParams.set('id', entryId);
+    } else {
+      url.searchParams.set('date', entryDate);
+    }
+    url.searchParams.set('ts', Date.now()); // キャッシュ対策
+
+    try {
+      const res = await fetch(url.toString(), { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`サーバーエラー: ${res.status}`);
       }
-      const src = u + (u.includes('?') ? '&' : '?') + 't=' + Date.now();
-      return new Promise((resolve)=>{
-        const pre = new Image();
-        pre.decoding = 'async';
-        pre.onload = () => { img.src = src; noImg.classList.add('hidden'); resolve(true); };
-        pre.onerror = () => { img.removeAttribute('src'); noImg.classList.remove('hidden'); resolve(false); };
-        pre.referrerPolicy = 'no-referrer';
-        pre.src = src;
-      });
-    }
+      const data = await res.json();
 
-    // 描画（空にしない方針）
-    async function renderFromData(data){
-      if(!data) return;
-
-      const d = (data.date || '').slice(0,10) || null;
-      if (d) { currentDate = d; title.innerHTML = titleHTML(d); }
-
-      const body = (data.sentence || '').trim();
-      if (body){
-        text.innerHTML = body.split(/\n+/).map(p=>`<p>${esc(p)}</p>`).join('');
-        lines.style.display = 'block';
-        requestAnimationFrame(drawNoteLines);
-      }else{
-        text.innerHTML = '';
-        lines.style.display = 'none';
-        lines.style.backgroundImage = 'none';
-      }
-
-      await setImageFromURL(data.image_url);
-    }
-
-    // 縦線描画
-    const LINES_MODE = 'follow';
-    const PCT_STEP = 5;
-    const LINE_MIN_GAP_PX = 10;
-
-    function drawNoteLines(){
-      const note = document.getElementById('note');
-      if(!note || lines.style.display === 'none') return;
-      const rectNote = note.getBoundingClientRect();
-      const W = rectNote.width, H = rectNote.height;
-
-      let xPositions = [];
-      if(LINES_MODE === 'percent'){
-        const step = Math.max(1, Math.min(50, PCT_STEP));
-        for(let p = 0; p <= 100; p += step){ xPositions.push(Math.round(W*(p/100))); }
-      }else{
-        const paras = Array.from(text.querySelectorAll('p'));
-        paras.forEach(p=>{
-          const range = document.createRange();
-          range.selectNodeContents(p);
-          const rects = Array.from(range.getClientRects());
-          rects.forEach(r=> xPositions.push(Math.round(r.left - rectNote.left)));
-          range.detach();
-        });
-        xPositions.sort((a,b)=>a-b);
-        const merged=[]; for(const x of xPositions){ if(merged.length===0 || Math.abs(x-merged[merged.length-1])>=LINE_MIN_GAP_PX) merged.push(x); }
-        xPositions = merged.length ? merged : [0, Math.round(W*0.33), Math.round(W*0.66), W];
-        if(!xPositions.includes(0)) xPositions.unshift(0);
-        if(!xPositions.includes(W)) xPositions.push(W);
-      }
-
-      const cs = getComputedStyle(document.documentElement);
-      const lineColor = cs.getPropertyValue('--note-line-color').trim() || 'rgba(0,0,80,.2)';
-      const lineW = parseFloat(cs.getPropertyValue('--note-line-w')) || 1;
-
-      const images = [], positions = [], sizes = [];
-      xPositions.forEach(x=>{
-        images.push(`linear-gradient(90deg, ${lineColor} 0, ${lineColor} ${lineW}px, transparent ${lineW}px)`);
-        positions.push(`${x}px 0`);
-        sizes.push(`${lineW}px ${H}px`);
-      });
-
-      lines.style.backgroundImage = images.join(',');
-      lines.style.backgroundRepeat = 'no-repeat' + (images.length>1 ? (', no-repeat').repeat(images.length-1) : '');
-      lines.style.backgroundPosition = positions.join(',');
-      lines.style.backgroundSize = sizes.join(',');
-    }
-    addEventListener('resize', ()=>requestAnimationFrame(drawNoteLines), { passive:true });
-    if (document.fonts && document.fonts.ready){ document.fonts.ready.then(()=>drawNoteLines()); }
-
-    // 戻る
-    document.getElementById('backBtn').addEventListener('click', (e)=>{
-      e.preventDefault();
-      if (history.length > 1) history.back();
-      else window.location.href = '/os_2509/frontend/top/calendar/calendar.html';
-    });
-
-    // スワイプ & 角めくり
-    function peelFromCorner(corner, after){
-      const curl = document.createElement('div');
-      curl.className = 'page-curl ' + (corner === 'left' ? 'left anim-left' : 'right anim-right');
-      sheet.appendChild(curl);
-      curl.addEventListener('animationend', ()=>{ curl.remove(); after && after(); }, { once:true });
-    }
-    function navigateSwipe(dx){
-      const cur = currentDate || (new Date()).toISOString().slice(0,10);
-      const next = dx < 0 ? ymdShift(cur, +1) : ymdShift(cur, -1);
-      updateTo(next, dx < 0 ? 'right' : 'left');
-    }
-    function updateTo(dateStr, animateFrom){
-      // ★ ここで中身は消さない（フェードアウトは視覚のみ）
-      paper.classList.add('fade-out');
-      fetchEntry({date: dateStr})
-        .then(json=>{
-          const doRender = ()=>{
-            renderFromData(json || null);
-            paper.classList.remove('fade-out');
-            paper.classList.add('fade-in');
-            setTimeout(()=>paper.classList.remove('fade-in'), 180);
-          };
-          peelFromCorner(animateFrom, doRender);
-          const u = new URL(location.href);
-          u.searchParams.set('date', dateStr);
-          u.searchParams.delete('id');
-          history.pushState({date: dateStr}, '', u.pathname + u.search);
-        })
-        .catch(()=>{
-          // 取得失敗でも既存表示は維持（空にしない）
-          paper.classList.remove('fade-out');
-        });
-    }
-    (function enableSwipe(){
-      let startX=0, startY=0, tracking=false;
-      const THRESHOLD=40, V_LIMIT=60;
-      function onStart(e){ const p=e.touches?e.touches[0]:e; startX=p.clientX; startY=p.clientY; tracking=true; }
-      function onMove(e){
-        if(!tracking) return;
-        const p=e.touches?e.touches[0]:e;
-        const dx=p.clientX-startX, dy=p.clientY-startY;
-        if(Math.abs(dy)>V_LIMIT){ tracking=false; return; }
-        if(Math.abs(dx)>THRESHOLD){ tracking=false; navigateSwipe(dx); }
-      }
-      function onEnd(){ tracking=false; }
-      book.addEventListener('touchstart', onStart, {passive:true});
-      book.addEventListener('touchmove',  onMove,  {passive:true});
-      book.addEventListener('touchend',   onEnd,   {passive:true});
-      book.addEventListener('mousedown',  (e)=>onStart(e));
-      book.addEventListener('mousemove',  (e)=>onMove(e));
-      book.addEventListener('mouseup',    onEnd);
-      book.addEventListener('mouseleave', onEnd);
-    })();
-    window.addEventListener('popstate', async (ev)=>{
-      const d = (ev.state && ev.state.date) ? ev.state.date : currentDate;
-      if(!d) return;
-      try{
-        const json = await fetchEntry({date:d});
-        renderFromData(json||null);
-      }catch(_){ /* 既存表示は維持 */ }
-    });
-
-    // 初期ロード
-    (async function init(){
-      try{
-        let json;
-        if (paramId)      json = await fetchEntry({id: paramId});
-        else if(paramDate)json = await fetchEntry({date: paramDate});
-        else { return; } // 既存の●表示を残す
-
-        renderFromData(json);
-        if (json && json.date){
-          const u = new URL(location.href);
-          u.searchParams.set('date', json.date.slice(0,10));
-          u.searchParams.delete('id');
-          history.replaceState({date: json.date.slice(0,10)}, '', u.pathname + u.search);
+      if (data.ok && data.entry) {
+        renderEntry(data.entry);
+      } else {
+        showEntryError(data.message || '絵日記が見つかりません');
+        // 日付指定で見つからなかった場合、タイトルだけはその日付にする
+        if (entryDate && !data.entry) {
+          titleEl.innerHTML = formatEntryDate(entryDate);
         }
-      }catch(e){
-        console.error('entry_api error:', e);
-        // 既存表示は維持（空にしない）
       }
-    })();
-  </script>
+    } catch (e) {
+      console.error('絵日記データの取得に失敗:', e);
+      showEntryError('データの読み込みに失敗しました');
+    }
+  }
+
+  // 実行
+  fetchEntry();
+});
+</script>
 </body>
 </html>

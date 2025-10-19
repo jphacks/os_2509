@@ -10,94 +10,8 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
 
-  <style>
-    :root{
-      --ink:#0b1320; --paper:#fffef9; --rule:rgba(0,64,160,.10);
-      --margin:#ff6b6b; --accent:#2e6aff; --spine:#e9e0d2; --spine-shadow:rgba(0,0,0,.18);
-      --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
-      --btn-icon: clamp(52px, 12vmin, 72px); --hero-h: clamp(150px, 26vh, 260px);
-      --top-shift: clamp(4vmin, 8vmin, 12vmin);
-      --board-w: min(96%, 520px); --rope-drop: clamp(90px, 16vmin, 180px);
-    }
-    html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden}
-    *,*::before,*::after{box-sizing:border-box}
-    body{
-      color:var(--ink); font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;
-      background:var(--paper); min-height:100dvh; -webkit-text-size-adjust:100%; overscroll-behavior:none; touch-action:pan-x pan-y;
-    }
-    .page{
-      position:relative; min-height:100svh; height:100svh; padding:max(1.2vmin,env(safe-area-inset-top)) max(1.2vmin,env(safe-area-inset-right)) max(1.2vmin,env(safe-area-inset-bottom)) max(1.2vmin,env(safe-area-inset-left)); overflow:clip;
-      background:
-        linear-gradient(90deg, var(--margin) 0 .5vmin, transparent .5vmin) clamp(7vmin,10vw,9vmin) 0/100% 100% no-repeat,
-        repeating-linear-gradient(180deg, transparent 0 calc(6.6vmin - 1px), var(--rule) calc(6.6vmin - 1px) 6.6vmin);
-    }
-    @supports not (height:100svh){.page{min-height:100vh;height:100vh}}
-    .spine{position:absolute;left:0;top:0;bottom:0;width:clamp(6vmin,12vw,8vmin);
-      background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(0,0,0,.05)),repeating-linear-gradient(45deg,#efe7d6 0 10px,#e6dcc8 10px 20px);
-      box-shadow:inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow); z-index:2;
-    }
-    .spine::before{content:"";position:absolute;left:50%;top:1.2vmin;bottom:1.2vmin;width:2px;transform:translateX(-50%);
-      background:repeating-linear-gradient(180deg,#c7bca8 0 10px,transparent 10px 18px);opacity:.85}
-    .punches{position:absolute;left:clamp(3.6vmin,6.2vw,4.4vmin);top:1vmin;bottom:1vmin;width:1.6vmin;
-      background:
-        radial-gradient(circle at 50% 6%, rgba(0,0,0,.18) 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y,
-        radial-gradient(circle at 50% 50%, #fff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
-      mix-blend-mode:multiply;opacity:.9;filter:blur(.15px);pointer-events:none;z-index:1}
-    .tape{position:absolute;z-index:3;width:clamp(9vmin,22vw,16vmin);height:clamp(2.2vmin,4.2vw,3vmin);
-      background:repeating-linear-gradient(45deg,#f7e7a7 0 10px,#f3d98b 10px 20px);opacity:.92;box-shadow:0 .8vmin 2vmin rgba(0,0,0,.18)}
-    .tape.tl{top:1.2vmin;left:clamp(10vmin,14vw,12vmin);transform:rotate(-7deg)}
-    .tape.tr{top:1.2vmin;right:clamp(1.2vmin,3vw,1.6vmin);transform:rotate(5deg)}
-    .content{position:relative;z-index:4;display:flex;flex-direction:column;min-height:100%;padding-left:var(--content-left);padding-right:clamp(10px,4vw,20px);padding-block:clamp(10px,4.4vmin,42px);gap:clamp(8px,2vh,18px);overflow:clip}
-    .top-gap{height:var(--top-shift)}
-    .title{font-family:"Sawarabi Mincho",serif;font-size:clamp(21px,6.4vw,30px);letter-spacing:.04em;text-align:center;margin:0 auto}
-    .spacer{min-height:clamp(4px,2.6vh,16px)}
-    .copyright{position:fixed;right:max(1.2vmin,env(safe-area-inset-right));bottom:max(1.2vmin,env(safe-area-inset-bottom));color:#2b3452;opacity:.8;font-size:clamp(10px,3vw,14px);z-index:5;pointer-events:none}
-    .board-wrap{position:relative;display:grid;place-items:center;width:100%;margin-top:clamp(14px,3.2vmin,24px);margin-bottom:clamp(6px,1.6vmin,10px);flex:1 1 auto;min-height:0}
-    .pin{position:absolute;z-index:4;top:0;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#f04b4b;box-shadow:0 2px 4px rgba(0,0,0,.25) inset,0 8px 14px rgba(0,0,0,.22)}
-    .pin::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,.18) 0 42%,transparent 62%);filter:blur(1px);z-index:-1}
-    .pin::after{content:"";position:absolute;left:50%;transform:translateX(-50%);top:18px;width:3px;height:10px;border-radius:2px;background:linear-gradient(180deg,#777,#c9c9c9);box-shadow:0 1px 1px rgba(0,0,0,.25)}
-    .ropes{position:absolute;z-index:3;left:0;right:0;top:0;height:var(--rope-drop);pointer-events:none;overflow:visible}
-    .ropes line{stroke:#7b6550;stroke-width:2.6;stroke-linecap:round;filter:drop-shadow(0 .5px .5px rgba(0,0,0,.25))}
-    .board{
-      position:relative;width:var(--board-w);border-radius:16px;padding:clamp(8px,1.4vh,12px);
-      background:
-        radial-gradient(8px 8px at 12% 18%, rgba(120,84,54,.28) 20%, transparent 21%),
-        radial-gradient(7px 7px at 22% 34%, rgba(90,64,40,.24) 20%, transparent 21%),
-        radial-gradient(9px 9px at 38% 22%, rgba(120,84,54,.28) 20%, transparent 21%),
-        radial-gradient(7px 7px at 66% 28%, rgba(90,64,40,.24) 20%, transparent 21%),
-        radial-gradient(9px 9px at 78% 66%, rgba(120,84,54,.28) 20%, transparent 21%),
-        radial-gradient(7px 7px at 18% 72%, rgba(90,64,40,.24) 20%, transparent 21%),
-        linear-gradient(180deg, #e3c4a0, #caa782);
-      box-shadow:inset 0 3px 8px rgba(0,0,0,.15), 0 16px 28px rgba(20,20,40,.16);
-      display:grid;grid-template-rows:auto 1fr;gap:8px;margin-top:var(--rope-drop);overflow:hidden;height:calc(100% - var(--rope-drop));
-    }
-    .cal-head{display:flex;align-items:center;justify-content:space-between;padding:clamp(8px,1.3vh,12px);background:#fffdf6;border-radius:12px;border:2px solid rgba(10,20,60,.14);box-shadow:0 2px 0 rgba(255,255,255,.85) inset}
-    .cal-month{font-family:"Yomogi",cursive;font-size:clamp(18px,5vw,22px);margin:0 auto}
-    .nav-btn{appearance:none;border:none;background:#fff;border:2px solid rgba(10,20,60,.15);border-radius:10px;padding:6px 10px;font-size:14px;cursor:pointer}
-    .cal-body{background:#fffdf6;border-radius:12px;border:2px solid rgba(10,20,60,.14);box-shadow:0 2px 0 rgba(255,255,255,.85) inset;padding:6px;display:grid;grid-template-rows:auto 1fr;overflow:hidden}
-    .dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
-    .dow{text-align:center;font-weight:600;font-size:12px;padding:6px 0}
-    .dow.sun{color:#e53935}.dow.sat{color:#1769ff}
-    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;grid-auto-rows:1fr}
-    .cell{position:relative;background:#fff;border:1px solid rgba(10,20,60,.08);border-radius:8px;padding:6px;display:flex;align-items:flex-start;overflow:hidden}
-    .cell button{all:unset;position:absolute;inset:0;cursor:pointer}
-    .cell .d{font-size:14px;font-weight:600}
-    .cell.sun .d{color:#e53935}.cell.sat .d{color:#1769ff}
-    .cell .emo{position:absolute;right:4px;bottom:2px;font-size:16px;opacity:.95}
-    .cell .mark{position:absolute;right:4px;top:3px;width:16px;height:16px;display:inline-grid;place-items:center;border-radius:4px;background:#2e6aff;box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 1px 4px rgba(0,0,0,.18)}
-    .cell .mark svg{width:12px;height:12px;color:#fff;display:block}
-    .hint{text-align:center;font-size:clamp(11px,3.2vw,12px);opacity:.85;line-height:1.2;margin-top:clamp(6px,1.2vmin,10px)}
-    .swipe-hint{position:absolute;top:50%;width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid rgba(30,40,70,.35);box-shadow:0 6px 14px rgba(20,20,40,.22),0 1px 0 rgba(255,255,255,.7) inset;transform:translateY(-50%) scale(.85);opacity:0;pointer-events:none;z-index:3;transition:opacity .12s,transform .12s}
-    .swipe-hint.left{left:8px;transform:translate(-18px,-50%) scale(.85)}
-    .swipe-hint.right{right:8px;transform:translate(18px,-50%) scale(.85)}
-    .slide-left .grid{animation:slideLeft .24s ease both}
-    .slide-right .grid{animation:slideRight .24s ease both}
-    @keyframes slideLeft{from{transform:translateX(14px);opacity:0}to{transform:none;opacity:1}}
-    @keyframes slideRight{from{transform:translateX(-14px);opacity:0}to{transform:none;opacity:1}}
+  <link rel="stylesheet" href="assets/css/style.css" />
 
-    /* ← 追加：遷移前フェードアウト */
-    .page.leaving { opacity: 0; transition: opacity .18s ease; }
-  </style>
 </head>
 <body>
   <div class="page">
@@ -154,7 +68,13 @@
     // ← DBから受け取る「YYYY-MM-DD: [id,...]」のマップ
     let diaryIndex = {};
     function hasDiary(dateStr){ return !!diaryIndex[dateStr] && diaryIndex[dateStr].length > 0; }
-    function firstDiaryId(dateStr){ return hasDiary(dateStr) ? diaryIndex[dateStr][0] : null; }
+    
+    // 配列の先頭( [0] )ではなく、配列内の最小値(一番若いID)を返すように変更
+    function firstDiaryId(dateStr){ 
+      if (!hasDiary(dateStr)) { return null; }
+      // 配列内のIDのうち、最小のID（一番若い番号）を返す
+      return Math.min(...diaryIndex[dateStr]);
+    }
 
     function eventEmoji(y,m,d){
       const md = `${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -204,7 +124,6 @@
       return span;
     }
 
-    // ← 追加：安全な遷移ヘルパー（id/date どちらでもOK）
     function gotoEntry({ id=null, date=null }) {
       const url = new URL(ENTRY_PAGE, location.origin);
       if (id != null)   url.searchParams.set('id', String(id));
@@ -251,8 +170,7 @@
         btn.setAttribute('aria-label', `${dateStr}を開く`);
         btn.addEventListener('click', () => {
           if (hasDiary(dateStr)) {
-            const id = firstDiaryId(dateStr);
-            // idがあればidで、無ければdateで遷移（entry.html は両対応）
+            const id = firstDiaryId(dateStr); // ← ここで最小のIDが取得される
             gotoEntry({ id: id ?? null, date: dateStr });
           } else {
             alert('この日付は絵日記が存在しません');
@@ -289,7 +207,7 @@
       const host = board, hintL = document.getElementById('hintLeft'), hintR = document.getElementById('hintRight');
       let sx=0, dx=0, down=false; const threshold=40;
       function showHints(){
-        const a=Math.min(1, Math.max(0,  dx/threshold));
+        const a=Math.min(1, Math.max(0,   dx/threshold));
         const b=Math.min(1, Math.max(0, -dx/threshold));
         if(a>0){ hintLeft.style.opacity=0.2+0.6*a; hintLeft.style.transform=`translate(${(-18+18*a).toFixed(1)}px, -50%) scale(${(0.85+0.25*a).toFixed(2)})`; }
         else{ hintLeft.style.opacity=0; hintLeft.style.transform=`translate(-18px,-50%) scale(.85)`; }
