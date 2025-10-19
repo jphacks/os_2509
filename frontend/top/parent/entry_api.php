@@ -1,26 +1,27 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 /**
- * entry_api.php
+ * entry_api.php (安定版)
+ * 
  * - JSON: id/date で日記1件を返す
- * - mode=proxy&id=... : ローカルにキャッシュした画像を返す（強キャッシュ）
- *   ※初回だけimageのURL（DBのimage列に格納されたURL）から取り寄せ→/cache/ に保存
- *     以後はローカルから高速配信（SAS期限切れでもOK）
- *
- * 置き場所:
- *   C:\xampp\htdocs\os_2509\frontend\top\parent\entry_api.php
+ * - mode=proxy&id=... : ローカルキャッシュした画像を返す
+ *   （初回はURLから取得→/cache に保存→以後は高速配信）
  *
  * 注意:
- *   このファイルはBOMなしUTF-8で保存。先頭に空行/空白を入れないこと。
+ * - UTF-8 (BOMなし)
+ * - 出力前に余分な空白やechoを入れない
  */
 
-/* ========== 画像プロキシ: 先に処理（ヘッダ競合回避） ========== */
-$mode = isset($_GET['mode']) ? $_GET['mode'] : null;
+declare(strict_types=1);
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+/* ===========================================================
+   1. 画像プロキシモード（最初に処理して早期 return）
+   =========================================================== */
+$mode = $_GET['mode'] ?? null;
 if ($mode === 'proxy') {
-  // 必要情報のみで動くよう、ここではDB接続は後で行う
   $id = isset($_GET['id']) ? intval($_GET['id']) : null;
-  if ($id === null) {
+  if (!$id) {
     http_response_code(400);
     header('Content-Type: text/plain; charset=utf-8');
     echo "id required";
@@ -28,35 +29,39 @@ if ($mode === 'proxy') {
   }
 
   $cacheDir = __DIR__ . '/cache';
-  if (!is_dir($cacheDir)) { @mkdir($cacheDir, 0777, true); }
-  $metaFile = $cacheDir . "/img_{$id}.json";
-  $binFile  = $cacheDir . "/img_{$id}.bin";
+  if (!is_dir($cacheDir)) @mkdir($cacheDir, 0777, true);
+  $metaFile = "{$cacheDir}/img_{$id}.json";
+  $binFile  = "{$cacheDir}/img_{$id}.bin";
 
-  // 既存キャッシュなら即返す
+  // --- 既存キャッシュがある場合 ---
   if (is_file($binFile) && is_file($metaFile)) {
     $meta = json_decode(@file_get_contents($metaFile), true) ?: [];
-    $mime = isset($meta['mime']) ? $meta['mime'] : 'image/jpeg';
+    $mime = $meta['mime'] ?? 'image/jpeg';
     $mtime = filemtime($binFile);
-
     $etag = '"' . sha1($mtime . filesize($binFile)) . '"';
+
     header('ETag: '.$etag);
     header('Last-Modified: '.gmdate('D, d M Y H:i:s', $mtime).' GMT');
+    header('Cache-Control: public, max-age=31536000, immutable');
 
-    if ((isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) === $etag) ||
-        (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $mtime)) {
+    // クライアントキャッシュチェック
+    if (
+      (isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) === $etag) ||
+      (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $mtime)
+    ) {
       header('HTTP/1.1 304 Not Modified');
       exit;
     }
 
+    while (ob_get_level()) ob_end_clean();
     header('Content-Type: '.$mime);
-    header('Cache-Control: public, max-age=31536000, immutable'); // 1年
     header('Content-Length: '.filesize($binFile));
     readfile($binFile);
     exit;
   }
 
-  // DB接続してURLを取得
-  $mysqli = new mysqli("localhost", "backhold", "backhold", "back_db1");
+  // --- DBからURLを取得 ---
+  $mysqli = @new mysqli("localhost", "backhold", "backhold", "back_db1");
   if ($mysqli->connect_error) {
     http_response_code(500);
     header('Content-Type: text/plain; charset=utf-8');
@@ -66,22 +71,13 @@ if ($mode === 'proxy') {
 
   $stmt = $mysqli->prepare("SELECT image FROM db3 WHERE id=? LIMIT 1");
   $stmt->bind_param("i", $id);
-  if (!$stmt->execute()) {
-    $stmt->close(); $mysqli->close();
-    http_response_code(500);
-    header('Content-Type: text/plain; charset=utf-8');
-    echo "SQL error";
-    exit;
-  }
+  $stmt->execute();
   $res = $stmt->get_result();
   $row = $res->fetch_assoc();
   $stmt->close();
   $mysqli->close();
 
-  $image_url = null;
-  if ($row && isset($row['image']) && $row['image'] !== null) {
-    if (is_string($row['image'])) $image_url = $row['image'];
-  }
+  $image_url = $row['image'] ?? null;
   if (!$image_url) {
     http_response_code(404);
     header('Content-Type: text/plain; charset=utf-8');
@@ -89,8 +85,8 @@ if ($mode === 'proxy') {
     exit;
   }
 
-  // 取り寄せ（curl優先→file_get_contents フォールバック）
-  $bin = null; $mime = 'image/png';
+  // --- 画像取得 ---
+  $bin = null; $mime = 'image/jpeg';
   if (function_exists('curl_init')) {
     $ch = curl_init($image_url);
     curl_setopt_array($ch, [
@@ -99,35 +95,39 @@ if ($mode === 'proxy') {
       CURLOPT_TIMEOUT => 10,
       CURLOPT_SSL_VERIFYPEER => false,
       CURLOPT_SSL_VERIFYHOST => false,
-      CURLOPT_USERAGENT => 'DiaryImageProxy/1.0'
+      CURLOPT_USERAGENT => 'DiaryImageProxy/1.1'
     ]);
     $bin = curl_exec($ch);
-    $ct  = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    $ct = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     if ($ct) $mime = $ct;
     curl_close($ch);
   }
-  if ($bin === false || $bin === null) {
-    $ctx = stream_context_create(['http'=>['timeout'=>10], 'https'=>['timeout'=>10]]);
+
+  if (!$bin) {
+    $ctx = stream_context_create(['http'=>['timeout'=>10],'https'=>['timeout'=>10]]);
     $bin = @file_get_contents($image_url, false, $ctx);
   }
-  if ($bin === false || $bin === null) {
+
+  if (!$bin) {
     http_response_code(502);
     header('Content-Type: text/plain; charset=utf-8');
     echo "image fetch failed";
     exit;
   }
 
-  // MIME推定
+  // --- MIME再検出 ---
   if (function_exists('finfo_open')) {
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $m = $finfo->buffer($bin);
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $m = finfo_buffer($finfo, $bin);
+    finfo_close($finfo);
     if ($m) $mime = $m;
   }
 
-  // 保存
+  // --- キャッシュ保存 ---
   @file_put_contents($binFile, $bin);
-  @file_put_contents($metaFile, json_encode(['mime'=>$mime, 'from'=>$image_url], JSON_UNESCAPED_UNICODE));
+  @file_put_contents($metaFile, json_encode(['mime'=>$mime,'from'=>$image_url], JSON_UNESCAPED_UNICODE));
 
+  while (ob_get_level()) ob_end_clean();
   header('Content-Type: '.$mime);
   header('Cache-Control: public, max-age=31536000, immutable');
   header('Content-Length: '.strlen($bin));
@@ -135,10 +135,15 @@ if ($mode === 'proxy') {
   exit;
 }
 
-/* ========== JSON API（id/date 指定） ========== */
+/* ===========================================================
+   2. JSON API 部分
+   =========================================================== */
+while (ob_get_level()) ob_end_clean();
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
-$mysqli = new mysqli("localhost", "backhold", "backhold", "back_db1");
+$mysqli = @new mysqli("localhost", "backhold", "backhold", "back_db1");
 if ($mysqli->connect_error) {
   http_response_code(500);
   echo json_encode(['ok'=>false, 'error'=>'DB接続失敗: '.$mysqli->connect_error], JSON_UNESCAPED_UNICODE);
@@ -147,7 +152,7 @@ if ($mysqli->connect_error) {
 
 $id   = isset($_GET['id'])   ? intval($_GET['id']) : null;
 $date = isset($_GET['date']) ? trim($_GET['date']) : null;
-if ($date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) { $date = null; }
+if ($date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) $date = null;
 
 if ($id) {
   $stmt = $mysqli->prepare("SELECT id, DATE_FORMAT(`date`, '%Y-%m-%d') AS day, sentence, place, image FROM db3 WHERE id=? LIMIT 1");
@@ -157,7 +162,7 @@ if ($id) {
   $stmt->bind_param("s", $date);
 } else {
   http_response_code(400);
-  echo json_encode(['ok'=>false, 'error'=>'id または date を指定してください'], JSON_UNESCAPED_UNICODE);
+  echo json_encode(['ok'=>false,'error'=>'id または date を指定してください'], JSON_UNESCAPED_UNICODE);
   $mysqli->close();
   exit;
 }
@@ -168,36 +173,42 @@ if (!$stmt->execute()) {
   $stmt->close(); $mysqli->close();
   exit;
 }
+
 $res = $stmt->get_result();
 $row = $res->fetch_assoc();
 $stmt->close();
 $mysqli->close();
 
 if (!$row) {
-  echo json_encode(['ok'=>true, 'id'=>null, 'date'=>($date ?: null), 'sentence'=>null, 'image_url'=>null, 'image_data'=>null, 'image_proxy'=>null], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+  echo json_encode([
+    'ok'=>true,
+    'id'=>null,
+    'date'=>($date ?: null),
+    'sentence'=>null,
+    'image_url'=>null,
+    'image_proxy'=>null
+  ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
   exit;
 }
 
-// image: URL 文字列（SAS期限付きでもOK。初回成功時にローカル保存）
-$image_url = null;
-if (!is_null($row['image']) && $row['image'] !== '') {
-  if (is_string($row['image'])) $image_url = $row['image'];
-}
-
-// プロキシURLを安全に生成（このスクリプトのディレクトリを基準にする）
+// --- imageプロキシURL生成 ---
+$image_url = (is_string($row['image']) && $row['image'] !== '') ? $row['image'] : null;
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
 $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
-$dir    = rtrim(str_replace('\\','/', dirname($_SERVER['SCRIPT_NAME'])), '/'); // 例: /os_2509/frontend/top/parent
+$dir    = rtrim(str_replace('\\','/', dirname($_SERVER['SCRIPT_NAME'])), '/');
 $image_proxy = ($image_url && isset($row['id']))
-  ? $scheme . $host . $dir . '/entry_api.php?mode=proxy&id=' . intval($row['id'])
+  ? "{$scheme}{$host}{$dir}/entry_api.php?mode=proxy&id=".intval($row['id'])
   : null;
 
+// --- JSON出力 ---
 echo json_encode([
-  'ok'         => true,
-  'id'         => intval($row['id']),
-  'date'       => $row['day'],
-  'sentence'   => $row['sentence'] ?? null,
-  'image_url'  => $image_url,
-  'image_data' => null,
-  'image_proxy'=> $image_proxy
+  'ok'=>true,
+  'id'=>intval($row['id']),
+  'date'=>$row['day'],
+  'sentence'=>$row['sentence'] ?? null,
+  'image_url'=>$image_url,
+  'image_proxy'=>$image_proxy
 ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+
+exit;
+

@@ -19,6 +19,7 @@ $dbname     = "back_db1";
 // データベースに接続
 $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) { die("データベース接続エラー: " . $conn->connect_error . "\n"); }
+
 echo "データベースに正常に接続しました。\n";
 
 // APIキーの準備とOpenAIクライアントの初期化
@@ -110,7 +111,7 @@ $systemInstructionForPrompt = <<<EOT
 あなたは、小学生の絵日記のイラスト案を考えるアシスタントです。
 
 # 指示
-ユーザーが提供する情報（日付、場所、プロンプト）を元に、以下の条件に従ってイラスト生成用のプロンプトを作成してください。
+ユーザーが提供する情報（日付、場所、プロンプト)を元に、以下の条件に従ってイラスト生成用のプロンプトを作成してください。
 
 # ユーザーからの情報フォーマット
 - 日付：YYYY-MM-DD HH:MM:SS
@@ -124,7 +125,7 @@ $systemInstructionForPrompt = <<<EOT
 4.  イラストのタッチは、明るくやさしい色合いの**水彩画風**で、**子どもの絵日記**のような雰囲気でお願いします。
 5.  出力形式は、まず選定した4つのイベントを箇条書きで端的に説明し、最後にスタイルを指定する以下の文章を**必ずそのまま**追加してください：
     「明るくやさしい色合い、水彩画風、日本の子どもの絵日記のようなタッチで，それぞれのイベントを1つの区画に描く構成で、必ず4区画の1枚の画像として集約する。」
-EOT;;
+EOT;
 
 $imagePrompt = '';
 try {
@@ -160,19 +161,18 @@ $insert_stmt_db2->close();
 // STEP 2: 画像を生成する
 // =================================================================
 echo "\n--- STEP 2: 画像の生成を開始します ---\n";
-$imageData = null;
+$imageUrl = null;
 try {
     $response = $client->images()->create([
-        'model' => 'dall-e-3', 'prompt' => $imagePrompt, 'n' => 1,
-        'size' => '1024x1024', 'quality' => 'standard',
+        'model' => 'dall-e-3', 
+        'prompt' => $imagePrompt, 
+        'n' => 1,
+        'size' => '1024x1024', 
+        'quality' => 'standard',
     ]);
     $imageUrl = $response->data[0]->url;
     echo "画像が生成されました！\n";
     echo "画像URL: " . $imageUrl . "\n";
-    
-    $imageData = file_get_contents($imageUrl);
-    if ($imageData === false) { throw new Exception("画像のダウンロードに失敗。"); }
-    echo "画像のダウンロードが完了しました。\n";
 } catch (Exception $e) {
     $conn->close(); die("APIエラー (STEP 2): " . $e->getMessage() . "\n");
 }
@@ -228,7 +228,7 @@ try {
 // =================================================================
 // STEP 4: 最終結果をdb3に保存する
 // =================================================================
-if ($imageData !== null && $diarySentence !== '') {
+if ($imageUrl !== null && $diarySentence !== '') {
     echo "\n--- STEP 4: 最終結果をdb3に保存します ---\n";
 
     $check_sql_db3 = "SELECT id FROM db3 WHERE id = ?";
@@ -240,9 +240,7 @@ if ($imageData !== null && $diarySentence !== '') {
     } else {
         $insert_sql_db3 = "INSERT INTO db3 (id, date, sentence, place, image) VALUES (?, ?, ?, ?, ?)";
         $stmt_insert_db3 = $conn->prepare($insert_sql_db3);
-        $null = NULL;
-        $stmt_insert_db3->bind_param("isssb", $sourceId, $sourceDate, $diarySentence, $sourceLocationForDB3, $null);
-        $stmt_insert_db3->send_long_data(4, $imageData);
+        $stmt_insert_db3->bind_param("issss", $sourceId, $sourceDate, $diarySentence, $sourceLocationForDB3, $imageUrl);
         if ($stmt_insert_db3->execute()) {
             echo "db3テーブルへのデータ保存が成功しました！ (ID: {$sourceId})\n";
         } else {
