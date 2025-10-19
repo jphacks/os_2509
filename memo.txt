@@ -30,3 +30,15 @@ C:\xampp\php\php.exe -r "unlink('composer-setup.php');"
 C:\xampp\php\php.exe composer.phar require openai-php/client
 C:\xampp\php\php.exe composer.phar require vlucas/phpdotenv
 
+# 1. 現在の変更がある場合はコミット
+git add .
+git commit -m "rikumi_k2の変更を保存"
+
+# 2. mainブランチに切り替え
+git checkout main
+
+# 3. rikumi_k2の内容をmainにマージ
+git merge rikumi_k2
+
+# 4. リモートにプッシュ
+git push origin main
