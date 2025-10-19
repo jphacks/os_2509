@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>おしゃべり えにっき</title>
+
+  <!-- フォント -->
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- スタイル -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <!-- 左上：もどる -->
+  <a href="../select/select_page.html" class="back-btn" id="backBtn">←もどる</a>
+
+  <!-- ▼ ノート背景（まるまんま） -->
+  <div class="page">
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <!-- ▼ コンテンツ -->
+    <main class="content">
+      <!-- 上部に少し余白（背景を見せる） -->
+      <div class="top-gap" aria-hidden="true"></div>
+
+      <!-- タイトル：中央・大きめ（絵文字なし） -->
+      <header class="header-section hero-center">
+        <h1 class="diary-title">おしゃべり えにっき</h1>
+      </header>
+
+      <!-- ステータス：タイトルとボタンの間、横向き・中央配置 -->
+      <div class="status-row">
+        <div id="status-indicator" class="status-indicator">
+          <div id="status-light" class="status-light stopped"></div>
+          <span id="status-text" class="status-text">とまっているよ</span>
+        </div>
+      </div>
+
+      <!-- エラー（必要時だけ表示） -->
+      <div id="error-display" class="error-box hidden" role="alert">
+        <p class="error-title">エラーが おきたよ</p>
+        <p id="error-message"></p>
+        <p class="error-tip">もういちどためすか、ブラウザの せっていを みなおしてね。</p>
+      </div>
+
+      <!-- 認識結果：画面下の方に寄せ、見やすい枠に -->
+      <section class="transcript-section">
+        <h2 class="section-title">きょうの できごと</h2>
+        <div id="transcript-container" class="transcript-box">
+          <p id="final-transcript" class="final-text"></p>
+          <p id="interim-transcript" class="interim-text"></p>
+        </div>
+      </section>
+
+      <!-- 下に押し下げるための可変スペーサ -->
+      <div class="flex-spacer" aria-hidden="true"></div>
+
+      <!-- ボタン：画面下寄せ・左右中央・同幅 -->
+      <section class="control-section pinned-bottom" aria-label="操作ボタン">
+        <button id="toggle-btn" class="diary-button primary-btn" aria-label="えにっきを つくる">
+          <span class="btn-label">
+            えにっきを<br aria-hidden="true">つくる
+          </span>
+        </button>
+        <button id="clear-btn" class="diary-button secondary-btn" aria-label="ぜんぶけす">
+          <span class="btn-label">ぜんぶけす</span>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <!-- 右下コピーライト -->
+  <div class="copyright">© 2025 つながり日記</div>
+
+  <!-- 機能JS（そのまま） -->
+  <script src="assets/js/app.js"></script>
+  <script>
+    // もどる動作：履歴があれば戻る／なければトップへ
+    document.getElementById('backBtn').addEventListener('click', function(e){
+      e.preventDefault();
+      if (history.length > 1) history.back();
+      else window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

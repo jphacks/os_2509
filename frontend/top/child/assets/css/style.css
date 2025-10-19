@@ -1,0 +1,306 @@
+/*
+ * 絵日記 ノート背景フルスクリーン＋子ども向けUI
+ * file: assets/css/style.css
+ */
+
+/* ===============================
+ * 0. トークン
+ * =============================== */
+:root{
+  /* ノート背景 */
+  --ink: #0b1320;
+  --paper: #fffef9;
+  --rule: rgba(0, 64, 160, .10);
+  --margin: #ff6b6b;
+  --spine-shadow: rgba(0,0,0,.18);
+
+  /* レイアウト（綴じのぶん左余白） */
+  --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
+
+  /* UIカラー（既存互換） */
+  --color-primary: #F48FB1;
+  --color-primary-hover: #F06292;
+  --color-stop: #EF5350;
+  --color-stop-hover: #E53935;
+  --color-secondary: #90A4AE;
+  --color-secondary-hover: #78909C;
+  --color-text: var(--ink);
+  --color-error-bg: #FFEBEE;
+  --color-error-border: #EF9A9A;
+
+  --border-radius-lg: 12px;
+
+  /* ボタンの共通幅（同じ幅で並べる） */
+  --btn-fixed-w: clamp(160px, 36vw, 260px);
+}
+
+/* ===============================
+ * 1. ベース
+ * =============================== */
+html, body { height: 100%; margin: 0; padding: 0; }
+body{
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Sawarabi Mincho", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
+  background: var(--paper);
+  min-height: 100dvh;
+  line-height: 1.6;
+}
+
+/* ===============================
+ * 2. ノート背景（まるまんま）
+ * =============================== */
+.page{
+  position: relative;
+  min-height: 100dvh;
+  padding: max(1.2vmin, env(safe-area-inset-top))
+           max(1.2vmin, env(safe-area-inset-right))
+           max(1.2vmin, env(safe-area-inset-bottom))
+           max(1.2vmin, env(safe-area-inset-left));
+  box-sizing: border-box;
+  background:
+    /* 左の赤いマージン線 */
+    linear-gradient(90deg, var(--margin) 0 0.5vmin, transparent 0.5vmin)
+      clamp(7vmin, 10vw, 9vmin) 0 / 100% 100% no-repeat,
+    /* 横罫線 */
+    repeating-linear-gradient(180deg,
+      transparent 0 calc(6.6vmin - 1px),
+      var(--rule) calc(6.6vmin - 1px) 6.6vmin);
+}
+/* 綴じ（spine） */
+.spine{
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: clamp(6vmin, 12vw, 8vmin);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35), rgba(0,0,0,.05)),
+    repeating-linear-gradient(45deg, #efe7d6 0 10px, #e6dcc8 10px 20px);
+  box-shadow: inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow);
+  z-index: 2;
+}
+.spine::before{
+  content:""; position:absolute; left: 50%; top: 1.2vmin; bottom: 1.2vmin; width: 2px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(180deg, #c7bca8 0 10px, transparent 10px 18px); opacity: .85;
+}
+/* パンチ穴 */
+.punches{
+  position: absolute; left: clamp(3.6vmin, 6.2vw, 4.4vmin); top: 1vmin; bottom: 1vmin; width: 1.6vmin;
+  background:
+    radial-gradient(circle at 50% 6%, rgba(0,0,0,.18) 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y,
+    radial-gradient(circle at 50% 50%, #ffffff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
+  mix-blend-mode: multiply; opacity:.9; filter: blur(.15px); pointer-events:none; z-index:1;
+}
+/* テープ */
+.tape{
+  position:absolute; z-index:3;
+  width: clamp(9vmin, 22vw, 16vmin); height: clamp(2.2vmin, 4.2vw, 3vmin);
+  background: repeating-linear-gradient(45deg, #f7e7a7 0 10px, #f3d98b 10px 20px);
+  opacity:.92; box-shadow: 0 .8vmin 2vmin rgba(0,0,0,.18);
+}
+.tape.tl{ top: 1.2vmin; left: clamp(10vmin, 14vw, 12vmin); transform: rotate(-7deg); }
+.tape.tr{ top: 1.2vmin; right: clamp(1.2vmin, 3vw, 1.6vmin); transform: rotate(5deg); }
+
+/* ===============================
+ * 3. レイアウト
+ * =============================== */
+.content{
+  position: relative; z-index: 4;
+  display: flex; flex-direction: column;
+  min-height: 100%;
+  padding-left: var(--content-left);
+  padding-right: clamp(10px, 4vw, 20px);
+  padding-block: clamp(10px, 4.4vh, 42px);
+  gap: clamp(8px, 2vh, 18px);
+}
+.top-gap{ height: clamp(1vh, 3vh, 4vh); flex: 0 0 auto; }
+
+/* ===============================
+ * 4. 各コンポーネントの配置・視認性
+ * =============================== */
+
+/* タイトル：中央・大きめ（絵文字なし） */
+.hero-center{
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+.diary-title{
+  font-family: "Sawarabi Mincho", "Noto Sans JP", serif;
+  font-size: clamp(28px, 7.2vw, 48px);
+  line-height: 1.2;
+  letter-spacing: .02em;
+  margin: 0;
+}
+
+/* ステータス：タイトルとボタンの間に横1行で中央配置（ピル表示） */
+.status-row{
+  display: flex; justify-content: center; align-items: center;
+  margin-top: clamp(4px, 1vh, 10px);
+}
+.status-indicator{
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.9);
+  border: 2px solid rgba(0,0,0,.12);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.10);
+  backdrop-filter: blur(2px);
+}
+.status-text{ font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.status-light{
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(30,40,60,.6);
+  transition: background-color .3s, box-shadow .3s;
+}
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.6;} }
+.recognizing{ background-color: var(--color-stop); box-shadow: 0 0 10px var(--color-stop); animation: pulse 1.5s infinite; }
+.waiting{ background-color: #e8f0ff; border-color: #3b82f6; }
+.stopped{ background-color: var(--color-secondary); }
+
+/* 認識結果：下寄せ＋見やすい枠 */
+.transcript-section{ margin-top: clamp(10px, 2.6vh, 20px); }
+.section-title{
+  font-family: "Sawarabi Mincho","Noto Sans JP", serif;
+  font-size: clamp(18px, 4.4vw, 22px);
+  font-weight: 700; margin: 0 0 8px 0;
+  padding-left: 12px;
+  border-left: 7px solid #ff9ec0; /* タイトルと調和するピンク */
+  background: linear-gradient(transparent 55%, rgba(255,255,255,.75) 55%);
+}
+.transcript-box{
+  background: #ffffff;
+  border: 3px solid rgba(27,45,66,.22);
+  border-radius: 18px;
+  padding: clamp(16px, 2.6vh, 20px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.14);
+  font-size: clamp(17px, 4.4vw, 19px);
+  min-height: 240px;
+}
+.final-text{ color: var(--ink); text-indent: 1em; }
+.interim-text{ color: #4f6b7a; opacity: .95; }
+
+/* 下寄せスペーサ（ボタンを最下段へ押し下げ） */
+.flex-spacer{ flex: 1 1 auto; }
+
+/* ボタン：画面下寄せ＆左右中央・同幅に揃える */
+.control-section.pinned-bottom{
+  display: flex;
+  justify-content: center;           /* セットを左右中央に */
+  align-items: stretch;
+  gap: 12px;
+  margin-top: clamp(8px, 2vh, 16px);
+  margin-bottom: max(12px, env(safe-area-inset-bottom));  /* 端末下部の安全域 */
+}
+.control-section.pinned-bottom .diary-button{
+  flex: 0 0 var(--btn-fixed-w);      /* 2つを同じ幅に */
+  text-align: center;
+}
+
+/* 改行表示を気持ちよく見せる */
+.btn-label{
+  display: inline-block;
+  line-height: 1.25;
+}
+.btn-label br{ content: ""; }
+
+/* ボタンの見た目 */
+.diary-button{
+  display: inline-flex; align-items: center; justify-content: center;
+
+  padding: clamp(14px, 2.6vh, 18px) clamp(16px, 4vw, 22px);
+  border-radius: 16px; border: 3px solid rgba(30,40,60,.12);
+
+  font-family: "Yomogi","Hiragino Maru Gothic ProN","Kosugi Maru","Noto Sans JP", cursive;
+  font-size: clamp(18px, 4.8vw, 22px);
+  letter-spacing: .02em;
+
+  background: linear-gradient(180deg, #fffefc, #f8f1e6);
+  color: #26314e;
+  box-shadow:
+    0 12px 24px rgba(20,20,40,.12),
+    0 2px 0 rgba(255,255,255,.9) inset;
+  transition: transform .12s ease, box-shadow .22s ease, filter .22s ease;
+  cursor: pointer;
+}
+.diary-button:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(20,20,40,.18), 0 2px 0 rgba(255,255,255,.95) inset;
+  filter: saturate(1.06);
+}
+.diary-button:active{ transform: translateY(1px); }
+
+.primary-btn{
+  color: #fff;
+  background-image: linear-gradient(180deg, #ff9ec0, #f68db3);
+  border-color: rgba(219, 92, 140, .35);
+}
+.primary-btn:hover{ background-image: linear-gradient(180deg, #ff8fb5, #f27aa6); }
+
+.secondary-btn{
+  color: #fff;
+  background-image: linear-gradient(180deg, #9db7c4, #8faab8);
+  border-color: rgba(90, 122, 140, .35);
+}
+.secondary-btn:hover{ background-image: linear-gradient(180deg, #92adbb, #829eac); }
+
+.stop-btn{
+  color: #fff !important;
+  background-image: linear-gradient(180deg, #ff7f7a, #ef5350) !important;
+  border-color: rgba(200,60,60,.4) !important;
+}
+
+/* エラー */
+.error-box{
+  background-color: var(--color-error-bg);
+  border: 2px solid var(--color-error-border);
+  color: var(--color-stop);
+  padding: 12px; border-radius: 8px; margin-top: 8px;
+}
+.error-title{ font-weight: 700; margin-bottom: 5px; font-family: "Sawarabi Mincho","Noto Sans JP", serif; }
+.error-tip{ font-size: .9rem; margin-top: 4px; }
+.hidden{ display: none; }
+
+/* 左上：もどる（付箋風のやさしいボタン） */
+.back-btn{
+  position: fixed;
+  left: max(12px, env(safe-area-inset-left));
+  top:  max(12px, env(safe-area-inset-top));
+  z-index: 12;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 10px;
+  min-width: 88px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-family: "Yomogi","Hiragino Maru Gothic ProN","Kosugi Maru",cursive;
+  color: #25304d;
+
+  background: linear-gradient(180deg, #ffe68a 0%, #fff4b6 100%);
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow:
+    0 18px 24px rgba(0,0,0,.12),
+    0 2px 0 rgba(255,255,255,.85) inset;
+  transform: rotate(-2.2deg);
+}
+.back-btn:active{ transform: rotate(-2.2deg) translateY(1px); }
+
+/* 右下コピーライト（固定配置） */
+.copyright{
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  color:#2b3452; opacity:.85;
+  font-size: clamp(10px, 3vw, 14px);
+  z-index: 5; pointer-events:none;
+}
+
+/* モバイル：幅が足りないときは縦積み */
+@media (max-width: 380px){
+  .control-section.pinned-bottom{ flex-wrap: wrap; }
+  .control-section.pinned-bottom .diary-button{
+    flex: 1 1 100%;
+  }
+}

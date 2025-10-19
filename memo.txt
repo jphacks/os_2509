@@ -1,0 +1,44 @@
+connection_diary/
+├── index.php              (トップページ)
+├── config/
+│   └── config.php        (DB設定)
+├── database/
+│   └── table.php         (テーブル作成)
+├── record/
+│   └── record.html       (音声録音画面)
+└── api/
+    └── save_audio_text.php (保存API)
+
+git init
+git add .
+git commit -m "first commit"
+git remote add origin url
+git push -u origin master
+
+composer require openai-php/client
+composer require vlucas/phpdotenv
+
+cd backend/gpt_api 
+# Composerインストーラーをダウンロード
+C:\xampp\php\php.exe -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+# Composerをインストール
+C:\xampp\php\php.exe composer-setup.php
+# インストーラーを削除
+C:\xampp\php\php.exe -r "unlink('composer-setup.php');"
+
+# OpenAI PHPクライアントをインストール
+C:\xampp\php\php.exe composer.phar require openai-php/client
+C:\xampp\php\php.exe composer.phar require vlucas/phpdotenv
+
+# 1. 現在の変更がある場合はコミット
+git add .
+git commit -m "rikumi_k2の変更を保存"
+
+# 2. mainブランチに切り替え
+git checkout main
+
+# 3. rikumi_k2の内容をmainにマージ
+git merge rikumi_k2
+
+# 4. リモートにプッシュ
+git push origin main
