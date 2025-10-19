@@ -13,7 +13,8 @@ ini_set('memory_limit', '1024M');
 mb_internal_encoding('UTF-8');
 
 // ====== DB接続設定読み込み ======
-require_once __DIR__ . '/config/config.php';  // mysqli版
+// require_once __DIR__ . '/config/config.php';  // mysqli版
+require_once dirname(__DIR__) . '/config/config.php';  // <- 1階層上の /config/config.php
 $conn = getDbConnection();
 
 // ====== Google APIキー読み込み ======
