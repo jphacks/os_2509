@@ -17,6 +17,19 @@
   </a>
 </p>
 
+<!-- ▼ 新規サムネ付きリンク（etxprwFgTLQ） ▼ -->
+<p align="center">
+  <a href="https://youtu.be/etxprwFgTLQ" target="_blank">
+    <picture>
+      <source media="(min-width:800px)" srcset="https://img.youtube.com/vi/etxprwFgTLQ/maxresdefault.jpg">
+      <img src="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg"
+           alt="デモ動画（新）サムネイル"
+           width="720">
+    </picture>
+  </a>
+</p>
+<!-- ▲ ここまで追加 ▲ -->
+
 ---
 
 ## 📖 概要
