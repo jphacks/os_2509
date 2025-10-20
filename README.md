@@ -10,8 +10,9 @@
 </p>
 
 <p align="center"> <a href="https://youtu.be/etxprwFgTLQ" target="_blank"> <picture> <source media="(min-width:800px)" srcset="https://img.youtube.com/vi/etxprwFgTLQ/maxresdefault.jpg"> <img src="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg" alt="デモ動画（新）サムネイル" width="720"> </picture> </a> </p>
----
+
 <!-- ▲ ここまで追加 ▲ -->
+---
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/c2789bb8-2654-410e-9b34-36ff397d5690" width="400px" alt="アプリのメイン画面">
