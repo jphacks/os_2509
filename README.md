@@ -162,4 +162,4 @@ https://github.com/user-attachments/assets/ad3fb0f9-9d3c-4adb-a2ff-15f0b6857fc9
 * **[日野　快人]**
 * **[古河　遼]**
 * **[新　陸海]**
-* **[河野　玲王]**
+* **[河野　玲皇]**
