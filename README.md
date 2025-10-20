@@ -2,21 +2,6 @@
 
 > 子供の無意識の行動（音声と位置情報）をAIが解釈し、子供の視点に立った“絵日記”として自動生成するスマートフォン用Webアプリ
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/c2789bb8-2654-410e-9b34-36ff397d5690" width="400px" alt="アプリのメイン画面">
-</p>
-
----
-
-<p align="center">
-  <a href="https://www.youtube.com/watch?v=lA9EluZugD8">
-    <img src="https://img.shields.io/badge/▶-デモ動画を観る-red?style=for-the-badge&logo=youtube" alt="デモ動画">
-  </a>
-  <a href="#-開発技術">
-    <img src="https://img.shields.io/badge/Tech-スタック-blue?style=for-the-badge&logo=stackblitz" alt="技術スタック">
-  </a>
-</p>
-
 <!-- ▼ 新規サムネ付きリンク（etxprwFgTLQ） ▼ -->
 <p align="center">
   <a href="https://youtu.be/etxprwFgTLQ" target="_blank">
@@ -29,6 +14,12 @@
   </a>
 </p>
 <!-- ▲ ここまで追加 ▲ -->
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/c2789bb8-2654-410e-9b34-36ff397d5690" width="400px" alt="アプリのメイン画面">
+</p>
+
+---
 
 ---
 
