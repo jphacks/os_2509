@@ -7,11 +7,13 @@
   <a href="https://youtu.be/etxprwFgTLQ" target="_blank">
     <svg width="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="デモ動画（新）サムネイル">
       <!-- サムネイル画像 -->
-      <image href="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg" x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid slice"/>
-      <!-- 半透明の円（中央） -->
-      <circle cx="640" cy="360" r="140" fill="black" fill-opacity="0.45"/>
-      <!-- 再生三角形（中央） -->
-      <polygon points="610,300 610,420 720,360" fill="white"/>
+      <image href="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg"
+             width="1280" height="720"
+             preserveAspectRatio="xMidYMid slice" />
+      <!-- 半透明の再生ボタン背景 -->
+      <circle cx="640" cy="360" r="120" fill="black" fill-opacity="0.45" />
+      <!-- 再生ボタン三角形 -->
+      <polygon points="600,290 600,430 740,360" fill="white" />
     </svg>
   </a>
 </p>
