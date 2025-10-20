@@ -3,38 +3,19 @@
 > 子供の無意識の行動（音声と位置情報）をAIが解釈し、子供の視点に立った“絵日記”として自動生成するスマートフォン用Webアプリ
 
 <!-- ▼ 新規サムネ付きリンク（etxprwFgTLQ） ▼ -->
-<p align="center" style="position: relative; display: inline-block;">
-  <a href="https://youtu.be/etxprwFgTLQ" target="_blank" style="text-decoration: none;">
-    <picture>
-      <source media="(min-width:800px)" srcset="https://img.youtube.com/vi/etxprwFgTLQ/maxresdefault.jpg">
-      <img src="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg"
-           alt="デモ動画（新）サムネイル"
-           width="720"
-           style="border-radius: 12px;">
-    </picture>
-    <!-- 再生アイコンを中央に重ねる -->
-    <div style="
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.5);
-      border-radius: 50%;
-      width: 90px;
-      height: 90px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    ">
-      <span style="
-        font-size: 42px;
-        color: white;
-        font-family: 'Arial', sans-serif;
-        margin-left: 6px;
-      ">▶</span>
-    </div>
+<p align="center">
+  <a href="https://youtu.be/etxprwFgTLQ" target="_blank">
+    <svg width="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="デモ動画（新）サムネイル">
+      <!-- サムネイル画像 -->
+      <image href="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg" x="0" y="0" width="1280" height="720" preserveAspectRatio="xMidYMid slice"/>
+      <!-- 半透明の円（中央） -->
+      <circle cx="640" cy="360" r="140" fill="black" fill-opacity="0.45"/>
+      <!-- 再生三角形（中央） -->
+      <polygon points="610,300 610,420 720,360" fill="white"/>
+    </svg>
   </a>
 </p>
+
 <!-- ▲ ここまで追加 ▲ -->
 
 <p align="center">
