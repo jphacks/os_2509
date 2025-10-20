@@ -2,6 +2,8 @@
 
 > 子供の無意識の行動（音声と位置情報）をAIが解釈し、子供の視点に立った“絵日記”として自動生成するスマートフォン用Webアプリ
 ---
+#紹介動画
+---
 <p align="center">
   <a href="https://youtu.be/etxprwFgTLQ" target="_blank">
     <img src="https://img.shields.io/badge/▶%20Watch%20Demo%20Video-red?style=for-the-badge&logo=youtube" 
@@ -13,7 +15,7 @@
 
 <!-- ▲ ここまで追加 ▲ -->
 ---
-
+>メイン画面
 <p align="center">
   <img src="https://github.com/user-attachments/assets/c2789bb8-2654-410e-9b34-36ff397d5690" width="400px" alt="アプリのメイン画面">
 </p>
