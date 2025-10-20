@@ -4,14 +4,25 @@
 ---
 #紹介動画
 ---
+
 <p align="center">
-  <a href="https://youtu.be/etxprwFgTLQ" target="_blank">
+  <a href="https://youtu.be/4TFCMIiscl0" target="_blank">
     <img src="https://img.shields.io/badge/▶%20Watch%20Demo%20Video-red?style=for-the-badge&logo=youtube" 
          alt="デモ動画を見る">
   </a>
 </p>
 
-<p align="center"> <a href="https://youtu.be/etxprwFgTLQ" target="_blank"> <picture> <source media="(min-width:800px)" srcset="https://img.youtube.com/vi/etxprwFgTLQ/maxresdefault.jpg"> <img src="https://img.youtube.com/vi/etxprwFgTLQ/hqdefault.jpg" alt="デモ動画（新）サムネイル" width="720"> </picture> </a> </p>
+<p align="center">
+  <a href="https://youtu.be/4TFCMIiscl0" target="_blank">
+    <picture>
+      <source media="(min-width:800px)" srcset="https://img.youtube.com/vi/4TFCMIiscl0/maxresdefault.jpg">
+      <img src="https://img.youtube.com/vi/4TFCMIiscl0/hqdefault.jpg"
+           alt="デモ動画（新）サムネイル"
+           width="720">
+    </picture>
+  </a>
+</p>
+
 
 <!-- ▲ ここまで追加 ▲ -->
 ---
