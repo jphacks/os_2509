@@ -3,7 +3,7 @@
 
   const script = document.currentScript;
   const root = script?.dataset.root ?? "../../";
-  const loginPath = script?.dataset.login ?? `${root}frontend/account/login.html`;
+  const loginPath = script?.dataset.login ?? `${root}frontend/top/account/login.html`;
   const sessionUrl = script?.dataset.session ?? `${root}backend/account/session.php`;
   const logoutUrl = script?.dataset.logout ?? `${root}backend/account/logout.php`;
   const redirectOnFail = script?.dataset.redirectOnFail !== "false";

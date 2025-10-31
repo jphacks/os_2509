@@ -25,12 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const redirectToHome = () => {
-    window.location.assign("../top/select/select_page.html");
+    window.location.assign("../select/select_page.html");
   };
 
   const checkSession = async () => {
     try {
-      const response = await fetch("../../backend/account/session.php", {
+      const response = await fetch("../../../backend/account/session.php", {
         credentials: "same-origin",
       });
       if (response.ok) {
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.set("name", trimmed);
 
     try {
-      const response = await fetch("../../backend/account/login.php", {
+      const response = await fetch("../../../backend/account/login.php", {
         method: "POST",
         body: formData,
         credentials: "same-origin",
