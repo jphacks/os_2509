@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connection Diary ログイン</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&family=Yomogi&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+  <div class="page">
+    <main class="content">
+      <div class="top-gap" aria-hidden="true"></div>
+
+      <h1 class="title">Connection Diary</h1>
+      <p class="subtitle">小さな“気づき”を記録する旅をはじめましょう。テストログインでは名前だけで参加できます。</p>
+
+      <section class="quote-area" aria-label="今日のひとこと">
+        <div class="quote-card">
+          <p>「今日の声は、明日の宝ものになる。」</p>
+        </div>
+        <span class="quote-caption">背景メモより引用</span>
+      </section>
+
+      <form id="loginForm" class="login-card" autocomplete="off" novalidate>
+        <label for="nameInput" class="form-label">お名前<span class="required">（必須）</span></label>
+        <input id="nameInput" name="name" type="text" maxlength="120" placeholder="例：みらい" required />
+        <p class="helper-text">テスト用途のため、名前だけでログインできます。</p>
+        <button type="submit" id="loginButton">ログイン</button>
+      </form>
+
+      <div id="message" class="message" role="alert" aria-live="polite"></div>
+
+      <div class="spacer" aria-hidden="true"></div>
+    </main>
+  </div>
+
+  <footer class="copyright">© <span id="currentYear"></span> Connection Diary</footer>
+
+  <script src="./assets/js/login.js"></script>
+</body>
+</html>

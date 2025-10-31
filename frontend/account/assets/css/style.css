@@ -1,0 +1,275 @@
+:root {
+  --ink: #0b1320;
+  --paper: #fffef7;
+  --rule: rgba(0, 64, 160, 0.08);
+  --margin: #ff7a7a;
+  --accent: #2f6dff;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-shadow: 0 20px 40px rgba(20, 34, 60, 0.18);
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: "Noto Sans JP", system-ui, -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+  color: var(--ink);
+  background: linear-gradient(180deg, #bfe2ff 0%, #f1f7ff 52%, #f8e5c7 52%, #f8e5c7 100%);
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vh, 48px);
+  position: relative;
+  overflow: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.42) 0 2px, transparent 2px);
+  background-size: 28px 28px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  width: min(960px, 94vw);
+  min-height: clamp(520px, 92vh, 760px);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 240, 186, 0.6) 0 32%, transparent 65%),
+    radial-gradient(circle at 82% 22%, rgba(255, 209, 202, 0.55) 0 30%, transparent 62%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.55)),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0 18px, rgba(255, 255, 255, 0) 18px 36px),
+    linear-gradient(160deg, #fff2d3 0%, #ffe1c1 48%, #ffceda 100%);
+  border-radius: clamp(14px, 3vw, 28px);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 36px 68px rgba(20, 42, 74, 0.18);
+  padding: clamp(24px, 5vw, 56px);
+  overflow: hidden;
+  background-size: 100% 100%, 100% 100%, cover, cover, cover;
+}
+
+.page::before {
+  content: "";
+  position: absolute;
+  inset: clamp(28px, 6vw, 56px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+  border-radius: clamp(18px, 4vw, 28px);
+  box-shadow: 0 24px 48px rgba(25, 40, 70, 0.18);
+  z-index: 1;
+}
+
+.page::after {
+  content: "";
+  position: absolute;
+  top: clamp(24px, 5vw, 52px);
+  left: clamp(30px, 8vw, 90px);
+  width: clamp(44px, 9vw, 82px);
+  height: clamp(260px, 62vh, 440px);
+  background: linear-gradient(180deg, rgba(255, 226, 160, 0.9), rgba(255, 186, 120, 0.85));
+  border-radius: 999px;
+  box-shadow: inset -6px 6px 12px rgba(255, 255, 255, 0.45);
+  opacity: 0.65;
+  transform: rotate(-5deg);
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: clamp(32px, 6vh, 52px) clamp(24px, 6vw, 56px);
+  align-items: center;
+  gap: clamp(18px, 3vh, 30px);
+  text-align: center;
+}
+
+.top-gap {
+  height: clamp(32px, 6vh, 60px);
+}
+
+.title {
+  font-family: "Sawarabi Mincho", serif;
+  font-size: clamp(26px, 6.2vw, 34px);
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0 auto;
+  max-width: 520px;
+  font-size: clamp(14px, 3.6vw, 17px);
+  line-height: 1.7;
+  color: rgba(11, 19, 32, 0.78);
+  text-align: center;
+}
+
+.quote-area {
+  margin: clamp(16px, 4vh, 28px) auto 0;
+  max-width: clamp(280px, 60%, 460px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quote-card {
+  width: 100%;
+  padding: clamp(18px, 3vh, 30px);
+  border-radius: 16px;
+  background: linear-gradient(140deg, rgba(47, 109, 255, 0.12), rgba(255, 255, 255, 0.72));
+  box-shadow: 0 18px 36px rgba(47, 71, 122, 0.16);
+  border: 1px solid rgba(47, 109, 255, 0.18);
+}
+
+.quote-card p {
+  margin: 0;
+  font-family: "Yomogi", "Sawarabi Mincho", cursive;
+  font-size: clamp(16px, 4vw, 20px);
+  color: rgba(23, 43, 92, 0.92);
+  text-align: center;
+}
+
+.quote-caption {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(11, 19, 32, 0.56);
+}
+
+.login-card {
+  margin: clamp(18px, 4vh, 34px) auto 0;
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(20px, 4.4vh, 32px);
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(4px);
+}
+
+.form-label {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.required {
+  font-size: 12px;
+  color: var(--accent);
+  margin-left: 4px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.6px solid rgba(38, 49, 78, 0.14);
+  font-size: 16px;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.9);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: rgba(47, 109, 255, 0.66);
+  box-shadow: 0 0 0 4px rgba(47, 109, 255, 0.12);
+}
+
+.helper-text {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(11, 19, 32, 0.62);
+}
+
+button[type="submit"] {
+  margin-top: 8px;
+  background: linear-gradient(180deg, #6ea5ff, #4f82f6);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 17px;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 16px 30px rgba(79, 130, 246, 0.28);
+}
+
+button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(79, 130, 246, 0.3);
+  filter: brightness(1.05);
+}
+
+button[type="submit"]:disabled {
+  cursor: wait;
+  filter: grayscale(0.2);
+  box-shadow: none;
+}
+
+.message {
+  height: 30px;
+  font-size: 14px;
+  text-align: center;
+  color: rgba(11, 19, 32, 0.8);
+}
+
+.message.error {
+  color: #d12f2f;
+}
+
+.message.success {
+  color: #1a7c37;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.copyright {
+  margin: clamp(12px, 4vh, 24px) auto 0;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: rgba(11, 19, 32, 0.58);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  body {
+    padding: clamp(12px, 4vw, 24px);
+    align-items: stretch;
+  }
+
+  .page {
+    min-height: auto;
+    padding: clamp(18px, 6vw, 34px);
+  }
+
+  .content {
+    padding: clamp(26px, 6vh, 44px) clamp(18px, 6vw, 32px);
+    gap: clamp(16px, 5vw, 24px);
+  }
+
+  .login-card {
+    width: 100%;
+  }
+}

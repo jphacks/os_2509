@@ -1,4 +1,6 @@
-<?php
+﻿<?php
+define('AUTH_GUARD_RESPONSE_TYPE', 'json');
+$account = require __DIR__ . '/../../../backend/account/require_login.php';
 header('Content-Type: application/json; charset=utf-8');
 
 // XAMPPの一般的既定（root / パスワード空）。環境に合わせて変更可。
@@ -35,3 +37,11 @@ while ($row = $res->fetch_assoc()) {
 
 echo json_encode(['ok'=>true, 'days'=>$days], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 $mysqli->close();
+
+
+
+
+
+
+
+

@@ -1,4 +1,6 @@
-<?php
+﻿<?php
+define('AUTH_GUARD_RESPONSE_TYPE', 'json');
+$account = require __DIR__ . '/../../../backend/account/require_login.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
@@ -67,3 +69,4 @@ try {
 // JSONを出力
 echo json_encode($response, JSON_UNESCAPED_UNICODE);
 ?>
+

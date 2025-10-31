@@ -1,4 +1,6 @@
-<?php
+﻿<?php
+define('AUTH_GUARD_RESPONSE_TYPE', 'json');
+$account = require __DIR__ . '/../../../backend/account/require_login.php';
 /**
  * save_data.php
  * 音声テキスト (db1) と位置情報 (db0) をデータベースに保存する
@@ -117,3 +119,4 @@ try {
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
 ?>
+

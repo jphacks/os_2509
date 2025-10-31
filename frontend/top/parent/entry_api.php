@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * entry_api.php (安定版)
  * 
@@ -11,9 +11,10 @@
  * - 出力前に余分な空白やechoを入れない
  */
 
-declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
+define('AUTH_GUARD_RESPONSE_TYPE', 'json');
+$account = require __DIR__ . '/../../../backend/account/require_login.php';
 
 /* ===========================================================
    1. 画像プロキシモード（最初に処理して早期 return）
@@ -211,4 +212,19 @@ echo json_encode([
 ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 
 exit;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,4 +1,6 @@
-<?php
+﻿<?php
+define('AUTH_GUARD_RESPONSE_TYPE', 'json');
+$account = require __DIR__ . '/../../../backend/account/require_login.php';
 /**
  * run_diary_generation.php
  *
@@ -62,3 +64,4 @@ file_put_contents($logFile, "[OUTPUT] generate_diary_openai.php:\n" . $output2 .
 file_put_contents($logFile, "--- [END] 全てのプロセスが完了: " . date('Y-m-d H:i:s') . " ---\n", FILE_APPEND);
 
 ?>
+
