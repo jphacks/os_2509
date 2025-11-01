@@ -56,7 +56,8 @@ echo "<p class='success'>✓ データベース '$dbname' を選択しました<
 
 // ステップ3: 既存テーブルの削除（クリーンスタート）
 echo "<div class='step'><strong>ステップ3:</strong> 既存のテーブルを削除中...</div>";
-$tables = ['db0', 'db1', 'db1_1', 'db2', 'db3'];
+// ★★★ 修正点1: $tables配列に 'db5' を追加 ★★★
+$tables = ['db0', 'db1', 'db1_1', 'db2', 'db3', 'db5'];
 foreach ($tables as $table) {
     $sql = "DROP TABLE IF EXISTS $table";
     if ($conn->query($sql) === TRUE) {
@@ -98,56 +99,75 @@ if ($conn->query($sql_db1) === TRUE) {
     echo "<p class='error'>❌ db1エラー: " . $conn->error . "</p>";
 }
 
-// ステップ6: db1_1テーブルの作成（予備用）
-echo "<div class='step'><strong>ステップ6:</strong> db1_1テーブル（予備用）を作成中...</div>";
+// ステップ6: db1_1テーブルの作成（場所・予備用）
+echo "<div class='step'><strong>ステップ6:</strong> db1_1テーブル（場所・予備用）を作成中...</div>";
 $sql_db1_1 = "CREATE TABLE db1_1 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date DATETIME NOT NULL,
-    location TEXT NULL COMMENT '予備フィールド',
+    location TEXT NULL COMMENT '場所・予備フィールド',
     INDEX idx_date (date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='予備テーブル'";
+COMMENT='場所・予備テーブル'";
 
 if ($conn->query($sql_db1_1) === TRUE) {
-    echo "<p class='success'>✓ db1_1テーブル（予備用）を作成しました</p>";
+    echo "<p class='success'>✓ db1_1テーブル（場所・予備用）を作成しました</p>";
 } else {
     echo "<p class='error'>❌ db1_1エラー: " . $conn->error . "</p>";
 }
 
-// ステップ7: db2テーブルの作成（予備用）
-echo "<div class='step'><strong>ステップ7:</strong> db2テーブル（予備用）を作成中...</div>";
+// ステップ7: db2テーブルの作成（要約プロンプト用）
+echo "<div class='step'><strong>ステップ7:</strong> db2テーブル（要約プロンプト用）を作成中...</div>";
 $sql_db2 = "CREATE TABLE db2 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date DATETIME NOT NULL,
-    soundsum TEXT NULL,
-    place VARCHAR(255) NULL,
+    soundsum TEXT NULL COMMENT 'AI生成プロンプト',
+    place VARCHAR(255) NULL COMMENT '場所（予備）',
     INDEX idx_date (date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='予備テーブル'";
+COMMENT='AI生成プロンプトテーブル'";
 
 if ($conn->query($sql_db2) === TRUE) {
-    echo "<p class='success'>✓ db2テーブル（予備用）を作成しました</p>";
+    echo "<p class='success'>✓ db2テーブル（要約プロンプト用）を作成しました</p>";
 } else {
     echo "<p class='error'>❌ db2エラー: " . $conn->error . "</p>";
 }
 
-// ステップ8: db3テーブルの作成（予備用）
-echo "<div class='step'><strong>ステップ8:</strong> db3テーブル（予備用）を作成中...</div>";
+// ステップ8: db3テーブルの作成（最終成果物用）
+echo "<div class='step'><strong>ステップ8:</strong> db3テーブル（最終成果物用）を作成中...</div>";
 $sql_db3 = "CREATE TABLE db3 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     date DATETIME NOT NULL,
-    sentence TEXT NULL,
-    place VARCHAR(255) NULL,
+    sentence TEXT NULL COMMENT 'AI生成文章',
+    place VARCHAR(255) NULL COMMENT '場所（予備）',
     image TEXT NULL COMMENT '画像のURLを保存',
     INDEX idx_date (date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='予備テーブル'";
+COMMENT='最終成果物テーブル'";
 
 if ($conn->query($sql_db3) === TRUE) {
-    echo "<p class='success'>✓ db3テーブル（予備用）を作成しました</p>";
+    echo "<p class='success'>✓ db3テーブル（最終成果物用）を作成しました</p>";
 } else {
     echo "<p class='error'>❌ db3エラー: " . $conn->error . "</p>";
 }
+
+// ★★★ 修正点2: db5テーブル作成のステップを追加 ★★★
+echo "<div class='step'><strong>ステップ9:</strong> db5テーブル（動物図鑑用）を作成中...</div>";
+// ★★★ カラム名を`gif_url`に変更し、型を`TEXT`に変更 ★★★
+$sql_db5 = "CREATE TABLE db5 (
+    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    animal_name VARCHAR(255) NOT NULL COMMENT '動物名',
+    description TEXT NULL COMMENT '動物の説明文',
+    gif_url TEXT NULL COMMENT 'GIF画像のURLを保存',
+    INDEX idx_animal_name (animal_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='動物図鑑テーブル'";
+
+if ($conn->query($sql_db5) === TRUE) {
+    echo "<p class='success'>✓ db5テーブル（動物図鑑用）を作成しました</p>";
+} else {
+    echo "<p class='error'>❌ db5エラー: " . $conn->error . "</p>";
+}
+
 
 // テーブル一覧の表示
 echo "<h2>📊 作成されたテーブル一覧</h2>";
@@ -183,6 +203,7 @@ if ($result) {
 // db1テーブルの構造表示
 echo "<h2>📋 db1テーブル構造（音声テキスト用）</h2>";
 $result = $conn->query("DESCRIBE db1");
+// (db1の表示コードは省略しません)
 if ($result) {
     echo "<table>";
     echo "<tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th><th>Comment</th></tr>";
@@ -200,6 +221,27 @@ if ($result) {
     echo "</table>";
 }
 
+// ★★★ 修正点3: db5テーブルの構造表示を追加 ★★★
+echo "<h2>📋 db5テーブル構造（動物図鑑用）</h2>";
+$result = $conn->query("DESCRIBE db5");
+if ($result) {
+    echo "<table>";
+    echo "<tr><th>Field</th><th>Type</th><th>Null</th><th>Key</th><th>Default</th><th>Extra</th><th>Comment</th></tr>";
+    while ($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td><strong>" . htmlspecialchars($row['Field']) . "</strong></td>";
+        echo "<td>" . htmlspecialchars($row['Type']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['Null']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['Key']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['Default'] ?? 'NULL') . "</td>";
+        echo "<td>" . htmlspecialchars($row['Extra']) . "</td>";
+        echo "<td>" . htmlspecialchars($row['Comment'] ?? '') . "</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+}
+
+
 $conn->close();
 
 // 完了メッセージ
@@ -208,11 +250,14 @@ echo "<h2>✅ セットアップ完了！</h2>";
 echo "<p><strong>作成されたもの:</strong></p>";
 echo "<ul>";
 echo "<li>データベース: <code>$dbname</code></li>";
-echo "<li>db0テーブル: 緯度経度を保存（<code>latitude</code>, <code>longitude</code>）</li>";
-echo "<li>db1テーブル: 音声テキストを保存（<code>soundtext</code>）</li>";
+echo "<li>db0テーブル: 緯度経度を保存</li>";
+echo "<li>db1テーブル: 音声テキストを保存</li>";
 echo "<li>db1_1, db2, db3テーブル: 予備テーブル</li>";
+// ★★★ 修正点4: 完了メッセージにdb5を追加 ★★★
+echo "<li>db5テーブル: 動物図鑑情報（GIFのURL）を保存</li>";
 echo "</ul>";
 echo "</div>";
 
 echo "</body></html>";
 ?>
+
