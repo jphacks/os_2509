@@ -1,97 +1,164 @@
 :root{
-    --ink: #0b1320;
-    --paper: #fffef9;
-    --rule: rgba(0, 64, 160, .10);
-    --margin: #ff6b6b;
-    --accent: #2e6aff;
-    --spine: #e9e0d2;
-    --spine-shadow: rgba(0,0,0,.18);
+  --ink: #0b1320;
+  --paper: #fffef9;
+  --rule: rgba(0, 64, 160, .10);
+  --margin: #ff6b6b;
+  --accent: #2e6aff;
+  --spine: #e9e0d2;
+  --spine-shadow: rgba(0,0,0,.18);
 
-    /* 左の綴じ（spine）ぶんの安全余白 */
-    --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
+  /* 左の綴じ（spine）ぶんの安全余白 */
+  --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
 
-    /* ボタン内アイコン：大きめ */
-    --btn-icon: clamp(52px, 12vmin, 72px);
+  /* ボタン内アイコン：大きめ */
+  --btn-icon: clamp(52px, 12vmin, 72px);
 
-    /* 下部ヒーローイラストの高さ上限 */
-    --hero-h: clamp(150px, 26vh, 260px);
+  /* 下部ヒーローイラストの高さ上限 */
+  --hero-h: clamp(150px, 26vh, 260px);
 
-    /* タイトル〜下イラスト全体の下げ量 */
-    --top-shift: clamp(4vh, 8vh, 12vh);
+  /* タイトル〜下イラスト全体の下げ量（小さめ） */
+  --top-shift: clamp(0vh, 2vh, 4vh);
 }
 
-html, body { height: 100%; margin: 0; padding: 0; }
+/* ===== 画面ロック（スクロール不可）と安定化 ===== */
+html, body{
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;              /* ← 画面ロック */
+}
+*, *::before, *::after { box-sizing: border-box; }
+
 body{
-    color: var(--ink);
-    font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
-    background: var(--paper);
-    min-height: 100dvh;
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
+  background: var(--paper);
+  min-height: 100svh;            /* iOSバーの影響を受けにくい */
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;     /* バウンス抑制 */
+  touch-action: pan-x pan-y;     /* タップ反応の安定化 */
 }
 
 /* 背景（ノート） */
 .page{
-    position: relative;
-    min-height: 100dvh;
-    padding: max(1.2vmin, env(safe-area-inset-top)) max(1.2vmin, env(safe-area-inset-right)) max(1.2vmin, env(safe-area-inset-bottom)) max(1.2vmin, env(safe-area-inset-left));
-    box-sizing: border-box;
-    background:
-    linear-gradient(90deg, var(--margin) 0 0.5vmin, transparent 0.5vmin) clamp(7vmin, 10vw, 9vmin) 0/100% 100% no-repeat,
+  position: relative;
+  min-height: 100svh;
+  height: 100svh;                /* ← 高さを1画面に固定 */
+  padding:
+    max(1.2vmin, env(safe-area-inset-top))
+    max(1.2vmin, env(safe-area-inset-right))
+    max(1.2vmin, env(safe-area-inset-bottom))
+    max(1.2vmin, env(safe-area-inset-left));
+  box-sizing: border-box;
+  overflow: clip;                 /* ← はみ出しをクリップして内部スクロールを防止 */
+  background:
+    linear-gradient(90deg, var(--margin) 0 0.5vmin, transparent 0.5vmin)
+    clamp(7vmin, 10vw, 9vmin) 0/100% 100% no-repeat,
     repeating-linear-gradient(180deg, transparent 0 calc(6.6vmin - 1px), var(--rule) calc(6.6vmin - 1px) 6.6vmin);
 }
-.spine{ position: absolute; left: 0; top: 0; bottom: 0; width: clamp(6vmin, 12vw, 8vmin);
-    background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(0,0,0,.05)),
-                repeating-linear-gradient(45deg, #efe7d6 0 10px, #e6dcc8 10px 20px);
-    box-shadow: inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow); z-index: 2;
+@supports not (height: 100svh){
+  .page{ min-height: 100vh; height: 100vh; }
 }
-.spine::before{ content:""; position:absolute; left: 50%; top: 1.2vmin; bottom: 1.2vmin; width: 2px;
-    transform: translateX(-50%);
-    background: repeating-linear-gradient(180deg, #c7bca8 0 10px, transparent 10px 18px); opacity: .85;
+
+.spine{
+  position: absolute; left: 0; top: 0; bottom: 0; width: clamp(6vmin, 12vw, 8vmin);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.35), rgba(0,0,0,.05)),
+    repeating-linear-gradient(45deg, #efe7d6 0 10px, #e6dcc8 10px 20px);
+  box-shadow: inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow); z-index: 2;
 }
-.punches{ position: absolute; left: clamp(3.6vmin, 6.2vw, 4.4vmin); top: 1vmin; bottom: 1vmin; width: 1.6vmin;
-    background:
+.spine::before{
+  content:""; position:absolute; left: 50%; top: 1.2vmin; bottom: 1.2vmin; width: 2px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(180deg, #c7bca8 0 10px, transparent 10px 18px); opacity: .85;
+}
+.punches{
+  position: absolute; left: clamp(3.6vmin, 6.2vw, 4.4vmin); top: 1vmin; bottom: 1vmin; width: 1.6vmin;
+  background:
     radial-gradient(circle at 50% 6%, rgba(0,0,0,.18) 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y,
     radial-gradient(circle at 50% 50%, #ffffff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
-    mix-blend-mode: multiply; opacity:.9; filter: blur(.15px); pointer-events:none; z-index:1;
+  mix-blend-mode: multiply; opacity:.9; filter: blur(.15px); pointer-events:none; z-index:1;
 }
-.tape{ position:absolute; z-index:3; width: clamp(9vmin, 22vw, 16vmin); height: clamp(2.2vmin, 4.2vw, 3vmin);
-    background: repeating-linear-gradient(45deg, #f7e7a7 0 10px, #f3d98b 10px 20px);
-    opacity:.92; box-shadow: 0 0.8vmin 2vmin rgba(0,0,0,.18);
+.tape{
+  position:absolute; z-index:3; width: clamp(9vmin, 22vw, 16vmin); height: clamp(2.2vmin, 4.2vw, 3vmin);
+  background: repeating-linear-gradient(45deg, #f7e7a7 0 10px, #f3d98b 10px 20px);
+  opacity:.92; box-shadow: 0 0.8vmin 2vmin rgba(0,0,0,.18);
 }
 .tape.tl{ top: 1.2vmin; left: clamp(10vmin, 14vw, 12vmin); transform: rotate(-7deg); }
 .tape.tr{ top: 1.2vmin; right: clamp(1.2vmin, 3vw, 1.6vmin); transform: rotate(5deg); }
 
 /* レイアウト */
 .content{
-    position: relative;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-    padding-left: var(--content-left);
-    padding-right: clamp(10px, 4vw, 20px);
-    padding-block: clamp(10px, 4.4vh, 42px);
-    gap: clamp(8px, 2vh, 18px);
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-left: var(--content-left);
+  padding-right: clamp(10px, 4vw, 20px);
+  padding-block: clamp(10px, 4.4vh, 42px);
+  gap: clamp(8px, 2vh, 18px);
+  overflow: clip;                /* ← 内部スクロール抑止（コンテンツはみ出しをカット） */
 }
 
 .top-gap{ height: var(--top-shift); flex: 0 0 auto; }
 
 .title{
-    font-family: "Sawarabi Mincho", serif;
-    font-size: clamp(21px, 6.4vw, 30px);
-    letter-spacing: .04em;
-    margin: 0 auto;
-    text-align: center;
-    width: 100%;
-    max-width: 100%;
+  font-family: "Sawarabi Mincho", serif;
+  font-size: clamp(21px, 6.4vw, 30px);
+  letter-spacing: .04em;
+  margin: 0 auto;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
 }
+
+.header{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(30px, 6vw, 40px);   /* ← タイトルとログインの間隔をしっかり確保 */
+}
+
+.account-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(46, 106, 255, 0.12);
+  border: 1px solid rgba(46, 106, 255, 0.18);
+  font-size: clamp(12px, 3.2vw, 14px);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.account-chip.is-authenticated{ opacity: 1; transform: translateY(0); }
+
+.chip-label{ color: rgba(38, 49, 78, 0.78); letter-spacing: .08em; }
+.chip-name{ font-weight: 700; color: #244; }
+
+.chip-logout{
+  border: none;
+  background: rgba(38, 49, 78, 0.12);
+  color: rgba(38, 49, 78, 0.78);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: inherit;
+  cursor: pointer;
+  transition: background .16s ease, transform .16s ease;
+}
+.chip-logout:hover{ background: rgba(38, 49, 78, 0.2); transform: translateY(-1px); }
 
 .spacer{ min-height: clamp(4px, 2.6vh, 16px); flex: 0 0 auto; }
 
 .subtitle{
-    color:#3b4664; opacity:.98;
-    font-size: clamp(13px, 3.6vw, 16px);
-    line-height: 1.6;
-    margin: 0;
+  color:#3b4664; opacity:.98;
+  font-size: clamp(13px, 3.6vw, 16px);
+  line-height: 1.6;
+  margin: 0;
 }
 
 .grow        { flex: 1 1 auto; }
@@ -99,131 +166,129 @@ body{
 
 /* ボタンを大きく（アイコンも連動） */
 .btn-area{
-    display: flex;
-    flex-direction: column;
-    gap: clamp(14px, 3.4vh, 26px);
-    margin-bottom: clamp(8px, 2vh, 16px);
-    align-self: center;
-    width: 100%;
-    max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 3.4vh, 26px);
+  margin-bottom: clamp(8px, 2vh, 16px);
+  align-self: center;
+  width: 100%;
+  max-width: 560px;
 }
 .diary-btn{
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(8px, 2vmin, 14px);
-    padding-block: clamp(14px, 2.8vh, 18px);
-    padding-inline: clamp(18px, 4.4vw, 24px);
-    min-height: 56px;
-    border-radius: 14px;
-    border: 2px solid rgba(10,20,60,.15);
-    background: linear-gradient(180deg, #fffefc, #f7f2ea);
-    box-shadow: 0 12px 24px rgba(20,20,40,.18), 0 2px 0 rgba(255,255,255,.85) inset;
-    font-family: "Yomogi", "Hiragino Maru Gothic ProN", "Kosugi Maru", cursive;
-    font-size: clamp(18px, 5vw, 22px);
-    letter-spacing: .03em; color: #26314e; text-decoration: none;
-    transition: transform .12s ease, box-shadow .22s ease, filter .22s ease;
-    isolation:isolate;
-    white-space: nowrap;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vmin, 14px);
+  padding-block: clamp(14px, 2.8vh, 18px);
+  padding-inline: clamp(18px, 4.4vw, 24px);
+  min-height: 56px;
+  border-radius: 14px;
+  border: 2px solid rgba(10,20,60,.15);
+  background: linear-gradient(180deg, #fffefc, #f7f2ea);
+  box-shadow: 0 12px 24px rgba(20,20,40,.18), 0 2px 0 rgba(255,255,255,.85) inset;
+  font-family: "Yomogi", "Hiragino Maru Gothic ProN", "Kosugi Maru", cursive;
+  font-size: clamp(18px, 5vw, 22px);
+  letter-spacing: .03em; color: #26314e; text-decoration: none;
+  transition: transform .12s ease, box-shadow .22s ease, filter .22s ease;
+  isolation:isolate;
+  white-space: nowrap;
 }
 .diary-btn:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(20,20,40,.24), 0 2px 0 rgba(255,255,255,.9) inset;
-    filter: saturate(108%);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(20,20,40,.24), 0 2px 0 rgba(255,255,255,.9) inset;
+  filter: saturate(108%);
 }
 
 .icon{
-    width: var(--btn-icon);
-    height: var(--btn-icon);
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    flex: 0 0 var(--btn-icon);
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,.08);
-    pointer-events: none;
+  width: var(--btn-icon);
+  height: var(--btn-icon);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  flex: 0 0 var(--btn-icon);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  pointer-events: none;
 }
 
 .diary-btn .ink{
-    position:absolute; left:16px; top:50%; transform: translateY(-50%);
-    width:6px; height:6px; border-radius:50%;
-    background: var(--accent); box-shadow: 0 0 12px rgba(46,106,255,.6);
-    animation: blink 1.8s infinite ease-in-out;
+  position:absolute; left:16px; top:50%; transform: translateY(-50%);
+  width:6px; height:6px; border-radius:50%;
+  background: var(--accent); box-shadow: 0 0 12px rgba(46,106,255,.6);
+  animation: blink 1.8s infinite ease-in-out;
 }
 .diary-btn .trace{
-    position:absolute; left:10%; right:10%; height:2px; top:calc(50% + 18px);
-    background: linear-gradient(90deg, rgba(46,106,255,0) 0%, rgba(46,106,255,.5) 20%, rgba(46,106,255,0) 80%);
-    opacity:0; transition:opacity .2s ease;
+  position:absolute; left:10%; right:10%; height:2px; top:calc(50% + 18px);
+  background: linear-gradient(90deg, rgba(46,106,255,0) 0%, rgba(46,106,255,.5) 20%, rgba(46,106,255,0) 80%);
+  opacity:0; transition:opacity .2s ease;
 }
 .diary-btn:hover .trace{ opacity:.85; }
 @keyframes blink{ 0%,100%{opacity:.6} 50%{opacity:1} }
 
 /* ▼ 画像の“端だけ”をグラデで溶かしつつ、背景も縁で柔らげる */
 .feature{
-    display: grid;
-    place-items: center;
-    margin-top: clamp(2px, 0.6vh, 8px);
-    background: transparent;
-    padding: 0;
-    border-radius: 0;
+  display: grid;
+  place-items: center;
+  margin-top: clamp(2px, 0.6vh, 8px);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
 }
 .edge-blur{
-    position: relative;
-    display: inline-block;
-    line-height: 0;
-    max-width: min(94%, 720px);
-    max-height: var(--hero-h);
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  max-width: min(94%, 720px);
+  max-height: var(--hero-h);
 }
-/* ① 画像本体：中央は100%不透明、外周のみアルファを落として“貼り付け感”を消す */
 .edge-blur > img{
-    display: block;
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: var(--hero-h);
-    object-fit: contain;
-    mix-blend-mode: multiply;
-    -webkit-mask: radial-gradient(120% 110% at 50% 50%,
-                    #000 0 86%,
-                    rgba(0,0,0,.9) 90%,
-                    rgba(0,0,0,.5) 95%,
-                    transparent 100%);
-            mask: radial-gradient(120% 110% at 50% 50%,
-                    #000 0 86%,
-                    rgba(0,0,0,.9) 90%,
-                    rgba(0,0,0,.5) 95%,
-                    transparent 100%);
-    position: relative;
-    z-index: 1;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--hero-h);
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  -webkit-mask: radial-gradient(120% 110% at 50% 50%,
+                  #000 0 86%,
+                  rgba(0,0,0,.9) 90%,
+                  rgba(0,0,0,.5) 95%,
+                  transparent 100%);
+          mask: radial-gradient(120% 110% at 50% 50%,
+                  #000 0 86%,
+                  rgba(0,0,0,.9) 90%,
+                  rgba(0,0,0,.5) 95%,
+                  transparent 100%);
+  position: relative;
+  z-index: 1;
 }
-/* ② 縁リングで背景（ノート）だけをやわらかくブラーし、境界をさらに馴染ませる */
 .edge-blur::after{
-    content:"";
-    position:absolute;
-    inset:-8px;                               /* にじみを外へ少し出す */
-    pointer-events:none;
-    z-index: 2;
-    background: rgba(255,255,255,0.001);      /* 発動トリガー（重要） */
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    -webkit-mask: radial-gradient(closest-side,
-                    transparent 0,
-                    transparent calc(100% - 40px),  /* リング開始位置 */
-                    #000 calc(100% - 4px),
-                    #000 100%);
-            mask: radial-gradient(closest-side,
-                    transparent 0,
-                    transparent calc(100% - 40px),
-                    #000 calc(100% - 4px),
-                    #000 100%);
-    border-radius: 10px;
+  content:"";
+  position:absolute;
+  inset:-8px;
+  pointer-events:none;
+  z-index: 2;
+  background: rgba(255,255,255,0.001);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-mask: radial-gradient(closest-side,
+                  transparent 0,
+                  transparent calc(100% - 40px),
+                  #000 calc(100% - 4px),
+                  #000 100%);
+          mask: radial-gradient(closest-side,
+                  transparent 0,
+                  transparent calc(100% - 40px),
+                  #000 calc(100% - 4px),
+                  #000 100%);
+  border-radius: 10px;
 }
 
 .copyright{
-    position: fixed;
-    right: max(1.2vmin, env(safe-area-inset-right));
-    bottom: max(1.2vmin, env(safe-area-inset-bottom));
-    color:#2b3452; opacity:.8;
-    font-size: clamp(10px, 3vw, 14px);
-    z-index: 5; pointer-events:none;
+  position: fixed;
+  right: max(1.2vmin, env(safe-area-inset-right));
+  bottom: max(1.2vmin, env(safe-area-inset-bottom));
+  color:#2b3452; opacity:.8;
+  font-size: clamp(10px, 3vw, 14px);
+  z-index: 5; pointer-events:none;
 }

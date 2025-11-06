@@ -2,50 +2,54 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>つながり日記</title>
-
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <title>記録する／ふり返る - Connection Diary</title>
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./assets/css/style.css" />
+  <script src="../../shared/auth.js" data-root="../../../" defer></script>
 </head>
 <body>
   <div class="page">
-    <!-- 装飾 -->
     <div class="spine" aria-hidden="true"></div>
     <div class="punches" aria-hidden="true"></div>
     <div class="tape tl" aria-hidden="true"></div>
     <div class="tape tr" aria-hidden="true"></div>
 
-    <!-- コンテンツ -->
     <div class="content">
-      <!-- 全体を下へオフセット -->
       <div class="top-gap" aria-hidden="true"></div>
 
-      <h1 class="title">つながり日記</h1>
+      <header class="header">
+        <h1 class="title">つながり絵日記</h1>
+        <div class="account-chip" data-account-section>
+          <span class="chip-label">こんにちは、</span>
+          <span class="chip-name" data-account-name></span>
+          <button type="button" class="chip-logout" data-logout-button>ログアウト</button>
+        </div>
+      </header>
 
       <div class="spacer" aria-hidden="true"></div>
 
       <p class="subtitle">
-        絵とことばで育つ、家族のきずな。<br>
-        毎日の小さな瞬間を、やさしく残せる絵日記アプリ。
+        その日の声や空気を、そっとページに書き留めましょう。<br>
+        あなたの言葉が未来の思い出になります。
       </p>
 
-      <!-- ボタン（大きめ） -->
       <div class="grow" aria-hidden="true"></div>
 
       <div class="btn-area">
-        <a href="../child/child.html" id="writeBtn" class="diary-btn" aria-label="絵日記を書く">
-          <span>✍️　絵日記を書く</span>
-          <!-- 相対パスに修正 -->
-          <img class="icon" src="./assets/img/child.png" alt="麦わら帽子で虫取り網を持つ子どものイラスト">
+        <a href="../child/child.html" id="writeBtn" class="diary-btn" aria-label="日記をつける">
+          <span>こども日記をつける</span>
+          <img class="icon" src="./assets/img/child.png" alt="子どもが日記を書く様子のイラスト">
           <span class="ink" aria-hidden="true"></span>
           <span class="trace" aria-hidden="true"></span>
         </a>
 
-        <a href="../calendar/calendar.html" id="viewBtn" class="diary-btn" aria-label="絵日記を見る">
-          <span>📖　絵日記を見る</span>
-          <!-- 相対パスに修正 -->
-          <img class="icon" src="./assets/img/parent.png" alt="エプロンを着たお母さんのイラスト">
+        <a href="../calendar/calendar.html" id="viewBtn" class="diary-btn" aria-label="日記をみる">
+          <span>みんなの日記をみる</span>
+          <img class="icon" src="./assets/img/parent.png" alt="保護者が日記を読んでいる様子のイラスト">
           <span class="ink" aria-hidden="true"></span>
           <span class="trace" aria-hidden="true"></span>
         </a>
@@ -53,19 +57,16 @@
 
       <div class="grow-small" aria-hidden="true"></div>
 
-      <!-- 家族の“つながり”イラスト：画像の端をグラデで溶かし、背景も縁でブラー -->
       <div class="feature">
         <span class="edge-blur">
-          <!-- 相対パスに修正 -->
-          <img src="./assets/img/child_with_parent.png" alt="家族のつながりを表現したイラスト">
+          <img src="./assets/img/child_with_parent.png" alt="親子で日記を楽しむイラスト">
         </span>
       </div>
     </div>
   </div>
 
-  <div class="copyright">© <span id="y"></span> つながり日記</div>
+  <div class="copyright">© <span id="y"></span> つながり絵日記</div>
 
-  <script src="assets/js/app.js"></script>
-
+  <script src="assets/js/app.js" defer></script>
 </body>
 </html>

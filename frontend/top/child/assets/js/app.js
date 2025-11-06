@@ -267,6 +267,51 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
 
+        // // --- (変更) 関数名を変更し、位置情報も送信 ---
+        // sendDataToPHP(text) {
+        //     console.log(`サーバーにデータを送信中...`);
+            
+        //     const latitude = this.state.currentLatitude;
+        //     const longitude = this.state.currentLongitude;
+
+        //     // FormData (URLSearchParams) を使ってデータを準備
+        //     const formData = new URLSearchParams();
+        //     formData.append('sound_text', text);
+
+        //     // 位置情報が取得できている場合のみ追加
+        //     if (latitude !== null && longitude !== null) {
+        //         formData.append('latitude', latitude);
+        //         formData.append('longitude', longitude);
+        //         console.log(`送信データ: テキストあり, 位置情報 (${latitude}, ${longitude})`);
+        //     } else {
+        //         console.log(`送信データ: テキストあり, 位置情報なし`);
+        //     }
+
+        //     // (変更) 送信先PHPファイルを 'save_data.php' に
+        //     fetch('save_data.php', { 
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/x-www-form-urlencoded',
+        //         },
+        //         body: formData.toString() // URLSearchParams を文字列化
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 console.error('サーバー応答エラー:', response.status);
+        //             }
+        //             return response.json(); // (変更) PHPからJSONで応答を受け取る
+        //         })
+        //         .then(data => {
+        //             console.log('サーバー応答詳細:', data);
+        //         })
+        //         .catch(error => {
+        //             console.error('データの送信中にエラーが発生しました:', error);
+        //         });
+            
+        //     // 送信後、位置情報をリセット
+        //     this.state.currentLatitude = null;
+        //     this.state.currentLongitude = null;
+        // },
         // --- (変更) 関数名を変更し、位置情報も送信 ---
         sendDataToPHP(text) {
             console.log(`サーバーにデータを送信中...`);
@@ -287,7 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`送信データ: テキストあり, 位置情報なし`);
             }
 
+            // --- ▼ ここから修正 ▼ ---
+
             // (変更) 送信先PHPファイルを 'save_data.php' に
+            // STEP 1: まず、テキストと最終位置を保存します
             fetch('save_data.php', { 
                 method: 'POST',
                 headers: {
@@ -295,23 +343,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: formData.toString() // URLSearchParams を文字列化
             })
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('サーバー応答エラー:', response.status);
-                    }
-                    return response.json(); // (変更) PHPからJSONで応答を受け取る
-                })
-                .then(data => {
-                    console.log('サーバー応答詳細:', data);
-                })
-                .catch(error => {
-                    console.error('データの送信中にエラーが発生しました:', error);
+            .then(response => {
+                if (!response.ok) {
+                    console.error('サーバー応答エラー (save_data):', response.status);
+                    throw new Error('Data save failed'); // エラーを投げて catch に移す
+                }
+                return response.json(); // (変更) PHPからJSONで応答を受け取る
+            })
+            .then(data => {
+                console.log('サーバー応答詳細 (save_data):', data);
+                // STEP 2: 保存が成功したら、重い処理をキックする
+                console.log('データ保存成功。バックグラウンド処理をトリガーします...');
+                // この fetch は、すぐに {status: 'processing_started'} が返ってくる
+                return fetch('run_diary_generation.php', {
+                    method: 'POST'
                 });
-            
-            // 送信後、位置情報をリセット
-            this.state.currentLatitude = null;
-            this.state.currentLongitude = null;
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('サーバー応答エラー (run_diary):', response.status);
+                    throw new Error('Trigger failed');
+                }
+                return response.json();
+            })
+            .then(triggerData => {
+                console.log('バックグラウンド処理のトリガー応答:', triggerData);
+            })
+            .catch(error => {
+                // save_data.php か run_diary_generation.php のどちらかで失敗
+                console.error('データ保存または処理トリガー中にエラーが発生しました:', error);
+            });
         },
+        
 
         sendPeriodicLocation() {
             if (!navigator.geolocation) {

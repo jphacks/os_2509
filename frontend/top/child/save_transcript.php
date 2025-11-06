@@ -1,4 +1,6 @@
-<?php
+﻿<?php
+define('AUTH_GUARD_RESPONSE_TYPE', 'json');
+$account = require __DIR__ . '/../../../backend/account/require_login.php';
 // データベース接続情報
 $servername = "localhost";
 $username = "backhold";
@@ -49,3 +51,4 @@ $stmt->close();
 $conn->close();
 
 ?>
+

@@ -1,1 +1,8 @@
 backend/gpt_api/env/.env 
+backend/get_location/google_api.php
+backend/get_place/config.php
+# .envファイル（秘密情報）を無視する
+.env
+env/.env
+memo.txt
+
