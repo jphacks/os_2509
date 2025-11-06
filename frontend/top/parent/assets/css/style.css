@@ -38,7 +38,14 @@
   --postit-shadow: rgba(0,0,0,.18);
 }
 
-html, body { height: 100%; width:100%; margin: 0; padding: 0; overflow-x: hidden; }
+/* ==== 画面ロック（スクロール不可） ==== */
+html, body{
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;            /* ← 画面ロック */
+}
 *, *::before, *::after { box-sizing: border-box; }
 
 body{
@@ -48,16 +55,18 @@ body{
   -webkit-text-size-adjust: 100%;
   touch-action: pan-x pan-y;
   min-height: 100svh;
+  overscroll-behavior: none;   /* バウンス抑制 */
 }
 
 .page{
   position: relative;
   min-height: 100svh;
+  height: 100svh;              /* ← 1画面に固定 */
   padding: max(1.2vmin, env(safe-area-inset-top))
            max(1.2vmin, env(safe-area-inset-right))
            max(1.2vmin, env(safe-area-inset-bottom))
            max(1.2vmin, env(safe-area-inset-left));
-  overflow: clip;
+  overflow: clip;               /* ← はみ出しを切る（内部スクロールを発生させない） */
   background:
     /* 左の赤い余白線 */
     linear-gradient(90deg, var(--margin) 0 0.5vmin, transparent 0.5vmin)
@@ -101,6 +110,7 @@ body{
   padding-right: var(--right-pad);
   padding-block: clamp(6px, 3.2vmin, 28px);
   max-width: 100%;
+  overflow: clip;              /* ← コンテンツ側もオーバーフローを抑止 */
 }
 
 .title{
@@ -121,7 +131,7 @@ body{
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--gap);
-  min-height: 0;
+  min-height: 0;              /* 内部オーバーフロー計算の安定化 */
 }
 
 figure{ margin: 0; }
@@ -141,6 +151,7 @@ figure{ margin: 0; }
   position:absolute; inset:0; width: 100%; height: 100%;
   object-fit: cover; border-radius: 0;
 }
+
 /* 画像なし日のプレースホルダ */
 .no-image{
   position: absolute;
@@ -184,7 +195,7 @@ figure{ margin: 0; }
   font-size: clamp(14px, 4.2vw, 19px);
   line-height: 1.84;
   letter-spacing: .03em;
-  overflow: auto;
+  overflow: auto;             /* ← ここだけ内部スクロール可（本文が長い場合） */
   scrollbar-gutter: stable both-edges;
   text-shadow: .1px 0 #1e2640, -.1px 0 #1e2640, 0 .1px #1e2640, 0 -.1px #1e2640;
   font-weight: 500;
