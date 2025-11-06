@@ -1,11 +1,15 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+require_once __DIR__ . '/backend/common/session.php';
+start_project_session();
 
-$target = (isset($_SESSION['account_id'], $_SESSION['account_name']))
-    ? 'frontend/top/select/select_page.html'
-    : 'frontend/top/account/login.html';
+$loggedIn = isset($_SESSION['account_id'], $_SESSION['account_name']);
 
-header('Location: ' . $target);
+if ($loggedIn) {
+    header('Location: /os_2509/frontend/top/select/select_page.html', true, 302);
+    exit;
+}
+
+require __DIR__ . '/frontend/top/account/login.html';
 exit;

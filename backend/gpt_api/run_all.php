@@ -35,6 +35,7 @@ echo "OpenAIクライアントの準備が完了しました。\n";
 echo "\n--- STEP 1: イラスト指示文の生成を開始します ---\n";
 
 $sourceId = 0;
+$sourceUserId = 0;
 $sourceDate = '';
 $userPromptForAI = '';
 $targetDate = '';
@@ -51,9 +52,9 @@ if ($result_date && $result_date->num_rows > 0) {
 }
 
 // ---- ステップA: 該当日の全データを取得 ----
-$sql = "SELECT db1.id, db1.date, db1.soundtext, db1_1.location
+$sql = "SELECT db1.id, db1.user_id, db1.date, db1.soundtext, db1_1.location
         FROM db1
-        LEFT JOIN db1_1 ON db1.date = db1_1.date
+        LEFT JOIN db1_1 ON db1.date = db1_1.date AND db1.user_id = db1_1.user_id
         WHERE DATE(db1.date) = ? AND db1.soundtext IS NOT NULL AND db1.soundtext != ''
         ORDER BY db1.id ASC";
 $stmt = $conn->prepare($sql);
@@ -68,6 +69,17 @@ $currentLocation = null;
 $groupIndex = -1;
 
 while ($row = $result->fetch_assoc()) {
+    $rowUserId = (int)($row['user_id'] ?? 0);
+    if ($rowUserId <= 0) {
+        continue;
+    }
+    if ($sourceUserId === 0) {
+        $sourceUserId = $rowUserId;
+    } elseif ($sourceUserId !== $rowUserId) {
+        // skip data belonging to other users that may share the same date
+        continue;
+    }
+
     $location = $row['location'] ?? '不明な場所';
 
     if ($location !== $currentLocation) {
@@ -92,6 +104,12 @@ foreach ($groupedData as $group) {
     $combinedText = implode(" ", $group['soundtexts']);
     $promptParts[] = "場所：" . $group['location'] . "\nプロンプト：" . $combinedText;
 }
+
+if ($sourceUserId === 0) {
+    $conn->close(); die("エラー: 対象ユーザーのデータが見つかりません。\n");
+}
+
+echo "対象ユーザーID: {$sourceUserId}\n";
 
 if (!empty($promptParts)) {
     $userPromptForAI = implode("\n\n", $promptParts);
@@ -148,9 +166,9 @@ $find_id_sql_db2 = "SELECT MAX(id) as max_id FROM db2";
 $result_id_db2 = $conn->query($find_id_sql_db2);
 if ($result_id_db2) { $nextId_db2 = ($result_id_db2->fetch_assoc()['max_id'] ?? 0) + 1; }
 
-$insert_sql_db2 = "INSERT INTO db2 (id, date, soundsum) VALUES (?, ?, ?)";
+$insert_sql_db2 = "INSERT INTO db2 (id, user_id, date, soundsum, place) VALUES (?, ?, ?, ?, ?)";
 $insert_stmt_db2 = $conn->prepare($insert_sql_db2);
-$insert_stmt_db2->bind_param("iss", $nextId_db2, $sourceDate, $imagePrompt);
+$insert_stmt_db2->bind_param("iisss", $nextId_db2, $sourceUserId, $sourceDate, $imagePrompt, $sourceLocationForDB3);
 if ($insert_stmt_db2->execute()) {
     echo "db2テーブルへの保存が成功しました (ID: {$nextId_db2})。\n";
 }
@@ -231,18 +249,18 @@ try {
 if ($imageUrl !== null && $diarySentence !== '') {
     echo "\n--- STEP 4: 最終結果をdb3に保存します ---\n";
 
-    $check_sql_db3 = "SELECT id FROM db3 WHERE id = ?";
+    $check_sql_db3 = "SELECT id FROM db3 WHERE id = ? AND user_id = ?";
     $check_stmt_db3 = $conn->prepare($check_sql_db3);
-    $check_stmt_db3->bind_param("i", $sourceId);
+    $check_stmt_db3->bind_param("ii", $sourceId, $sourceUserId);
     $check_stmt_db3->execute();
     if ($check_stmt_db3->get_result()->num_rows > 0) {
-        echo "ID: {$sourceId} は既にdb3に存在するため、スキップしました。\n";
+        echo "ID: {$sourceId}, user_id: {$sourceUserId} は既にdb3に存在するため、スキップしました。\n";
     } else {
-        $insert_sql_db3 = "INSERT INTO db3 (id, date, sentence, place, image) VALUES (?, ?, ?, ?, ?)";
+        $insert_sql_db3 = "INSERT INTO db3 (id, user_id, date, sentence, place, image) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt_insert_db3 = $conn->prepare($insert_sql_db3);
-        $stmt_insert_db3->bind_param("issss", $sourceId, $sourceDate, $diarySentence, $sourceLocationForDB3, $imageUrl);
+        $stmt_insert_db3->bind_param("iissss", $sourceId, $sourceUserId, $sourceDate, $diarySentence, $sourceLocationForDB3, $imageUrl);
         if ($stmt_insert_db3->execute()) {
-            echo "db3テーブルへのデータ保存が成功しました！ (ID: {$sourceId})\n";
+            echo "db3テーブルへのデータ保存が成功しました！ (ID: {$sourceId}, user_id: {$sourceUserId})\n";
         } else {
             echo "エラー (db3): " . $stmt_insert_db3->error . "\n";
         }

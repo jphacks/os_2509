@@ -1,54 +1,51 @@
-﻿<?php
+<?php
+declare(strict_types=1);
+
 define('AUTH_GUARD_RESPONSE_TYPE', 'json');
 $account = require __DIR__ . '/../../../backend/account/require_login.php';
-// データベース接続情報
-$servername = "localhost";
-$username = "backhold";
-$password = "backhold";
-$dbname = "back_db1";
+$userId = (int)$account['id'];
 
-// POSTデータの検証
-if (!isset($_POST['sound_text']) || empty($_POST['sound_text'])) {
+header('Content-Type: application/json; charset=utf-8');
+
+if (!isset($_POST['sound_text']) || trim((string)$_POST['sound_text']) === '') {
     http_response_code(400);
-    die("エラー: sound_textが送信されていません。");
+    echo json_encode(['status' => 'error', 'message' => 'sound_text が指定されていません。'], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-$sound_text = $_POST['sound_text'];
+$soundText = (string)$_POST['sound_text'];
 
-// データベース接続
-$conn = new mysqli($servername, $username, $password, $dbname);
+$servername = "localhost";
+$username   = "backhold";
+$password   = "backhold";
+$dbname     = "back_db1";
 
-// 接続チェック
-if ($conn->connect_error) {
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    $conn = new mysqli($servername, $username, $password, $dbname);
+    $conn->set_charset('utf8mb4');
+
+    $stmt = $conn->prepare('INSERT INTO db1 (user_id, date, soundtext) VALUES (?, NOW(), ?)');
+    $stmt->bind_param('is', $userId, $soundText);
+    $stmt->execute();
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => '音声テキストを保存しました。',
+        'user_id' => $userId,
+        'id' => $stmt->insert_id,
+    ], JSON_UNESCAPED_UNICODE);
+
+    $stmt->close();
+    $conn->close();
+} catch (Throwable $e) {
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->close();
+    }
     http_response_code(500);
-    die("エラー: データベース接続失敗: " . $conn->connect_error);
+    echo json_encode([
+        'status' => 'error',
+        'message' => $e->getMessage(),
+    ], JSON_UNESCAPED_UNICODE);
 }
-
-// プリペアドステートメントを使用してSQLインジェクションを防止
-$sql = "INSERT INTO db1 (date, soundtext) VALUES (NOW(), ?)";
-
-$stmt = $conn->prepare($sql);
-
-if ($stmt === false) {
-    http_response_code(500);
-    die("エラー: SQLステートメントの準備に失敗しました: " . $conn->error);
-}
-
-// パラメータをバインド
-// 's' は string (文字列) を意味します
-$stmt->bind_param("s", $sound_text);
-
-// 実行
-if ($stmt->execute()) {
-    echo "成功: 音声テキストをdb1に保存しました。ID: " . $stmt->insert_id;
-} else {
-    http_response_code(500);
-    echo "エラー: レコードの挿入に失敗しました: " . $stmt->error;
-}
-
-// 接続を閉じる
-$stmt->close();
-$conn->close();
-
-?>
-

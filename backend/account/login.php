@@ -1,7 +1,8 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+require_once __DIR__ . '/../common/session.php';
+start_project_session();
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -40,6 +41,19 @@ $closeWithError = static function (?mysqli $conn, int $statusCode, string $messa
 };
 
 try {
+    $createTableSql = <<<SQL
+CREATE TABLE IF NOT EXISTS db4 (
+    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL UNIQUE COMMENT '表示名',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日時',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新日時',
+    last_login_at DATETIME NULL COMMENT '最終ログイン日時',
+    INDEX idx_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='アカウント管理テーブル'
+SQL;
+    $conn->query($createTableSql);
+
     // 登録済みか確認
     $stmt = $conn->prepare('SELECT id FROM db4 WHERE name = ? LIMIT 1');
     if (!$stmt) {

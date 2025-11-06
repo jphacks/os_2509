@@ -1,122 +1,193 @@
-﻿<?php
+<?php
+declare(strict_types=1);
+
 define('AUTH_GUARD_RESPONSE_TYPE', 'json');
 $account = require __DIR__ . '/../../../backend/account/require_login.php';
-/**
- * save_data.php
- * 音声テキスト (db1) と位置情報 (db0) をデータベースに保存する
- */
+$userId = (int)$account['id'];
 
-// データベース接続情報（db_setup.php と同じ設定）
-$servername = "localhost";
-$username = "backhold";
-$password = "backhold";
-$dbname = "back_db1";
+mb_internal_encoding('UTF-8');
 
-// タイムゾーン設定 (JST: 日本標準時)
+const SAVE_DATA_LOG_FILE = __DIR__ . '/save_data_debug.log';
+
+function saveDataLog(string $requestId, string $level, string $message, array $context = []): void
+{
+    $timestamp = date('Y-m-d H:i:s');
+    $line = sprintf('[%s][%s][%s] %s', $timestamp, $level, $requestId, $message);
+
+    if (!empty($context)) {
+        $line .= ' ' . json_encode(
+            $context,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+    }
+
+    file_put_contents(
+        SAVE_DATA_LOG_FILE,
+        $line . PHP_EOL,
+        FILE_APPEND | LOCK_EX
+    );
+}
+
+$requestId = bin2hex(random_bytes(8));
+
+// 各リクエストでログをリセット（上書き）
+file_put_contents(SAVE_DATA_LOG_FILE, '', LOCK_EX);
+
+$servername = 'localhost';
+$username   = 'backhold';
+$password   = 'backhold';
+$dbname     = 'back_db1';
+
 date_default_timezone_set('Asia/Tokyo');
-$current_datetime = date('Y-m-d H:i:s');
+$currentDatetime = date('Y-m-d H:i:s');
 
-// レスポンスをJSON形式で返す設定
 header('Content-Type: application/json; charset=utf-8');
 
-// POSTデータの受け取り
-// isset()で確認し、存在しない場合は null を設定
-$sound_text = $_POST['sound_text'] ?? null;
-$latitude = $_POST['latitude'] ?? null;
-$longitude = $_POST['longitude'] ?? null;
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+$rawBody = file_get_contents('php://input') ?: '';
+$requestData = $_POST;
 
-// デバッグや応答用の連想配列
+saveDataLog($requestId, 'INFO', 'リクエストを受信しました', [
+    'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+    'content_type' => $contentType,
+    'raw_length' => strlen($rawBody),
+    'user_id' => $userId,
+]);
+
+if ($rawBody !== '' && stripos($contentType, 'application/json') !== false) {
+    $decoded = json_decode($rawBody, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+        saveDataLog($requestId, 'ERROR', 'JSONの解析に失敗しました', [
+            'error' => json_last_error_msg(),
+            'raw_sample' => mb_substr($rawBody, 0, 200),
+        ]);
+
+        http_response_code(400);
+        echo json_encode([
+            'status' => 'error',
+            'message' => '無効なJSON形式です。',
+            'debug_id' => $requestId,
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $requestData = array_merge($requestData, $decoded);
+}
+
+saveDataLog($requestId, 'DEBUG', '解析後のペイロード', [
+    'payload' => $requestData,
+]);
+
+$soundText = null;
+$rawSoundTextLength = 0;
+$rawSoundPreview = '';
+if (array_key_exists('sound_text', $requestData)) {
+    $rawSoundText = (string)$requestData['sound_text'];
+    $rawSoundTextLength = mb_strlen($rawSoundText);
+    $rawSoundPreview = mb_substr($rawSoundText, 0, 120);
+    $trimmed = trim($rawSoundText);
+    if ($trimmed !== '') {
+        $soundText = $trimmed;
+    }
+}
+
+if ($rawSoundTextLength > 0) {
+    saveDataLog($requestId, 'INFO', '音声テキストを受信しました', [
+        'raw_text_length' => $rawSoundTextLength,
+        'preview' => $rawSoundPreview,
+    ]);
+} else {
+    saveDataLog($requestId, 'DEBUG', '音声テキストが未入力または空文字です');
+}
+
+$latitude  = null;
+if (array_key_exists('latitude', $requestData) && $requestData['latitude'] !== '' && $requestData['latitude'] !== null) {
+    $latitude = (float)$requestData['latitude'];
+}
+
+$longitude = null;
+if (array_key_exists('longitude', $requestData) && $requestData['longitude'] !== '' && $requestData['longitude'] !== null) {
+    $longitude = (float)$requestData['longitude'];
+}
+
 $response = [
     'status' => 'error',
-    'message' => '初期エラー',
+    'message' => '保存に失敗しました。',
+    'user_id' => $userId,
+    'debug_id' => $requestId,
     'received' => [
-        'text_received' => !is_null($sound_text),
+        'text_received' => $soundText !== null,
+        'raw_text_length' => $rawSoundTextLength,
         'latitude' => $latitude,
-        'longitude' => $longitude
+        'longitude' => $longitude,
     ],
     'saved' => [
         'db0_location' => false,
-        'db1_text' => false
-    ]
+        'db1_text' => false,
+    ],
 ];
 
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
 try {
-    // データベース接続
     $conn = new mysqli($servername, $username, $password, $dbname);
-    if ($conn->connect_error) {
-        throw new Exception("DB接続失敗: " . $conn->connect_error);
-    }
-    // 文字コード設定
-    $conn->set_charset("utf8mb4");
-
-    // トランザクション開始 (両方の保存を保証するため)
+    $conn->set_charset('utf8mb4');
     $conn->begin_transaction();
-    
-    $inserted_db0 = false;
-    $inserted_db1 = false;
 
-    // 1. 位置情報を db0 に保存 (緯度・経度が両方送信された場合のみ)
+    saveDataLog($requestId, 'INFO', 'DB接続に成功しました');
+
     if ($latitude !== null && $longitude !== null) {
-        // プリペアドステートメント
-        $stmt0 = $conn->prepare("INSERT INTO db0 (date, latitude, longitude) VALUES (?, ?, ?)");
-        if (!$stmt0) {
-             throw new Exception("db0 SQL準備エラー: " . $conn->error);
-        }
-        // "sdd" = String (date), Double (latitude), Double (longitude)
-        $stmt0->bind_param("sdd", $current_datetime, $latitude, $longitude);
-        
-        if ($stmt0->execute()) {
-            $inserted_db0 = true;
-        } else {
-            throw new Exception("db0 実行エラー: " . $stmt0->error);
-        }
-        $stmt0->close();
-    }
-
-    // 2. 音声テキストを db1 に保存 (テキストが送信され、空でない場合)
-    if ($sound_text !== null && trim($sound_text) !== '') {
-        $stmt1 = $conn->prepare("INSERT INTO db1 (date, soundtext) VALUES (?, ?)");
-         if (!$stmt1) {
-             throw new Exception("db1 SQL準備エラー: " . $conn->error);
-        }
-        // "ss" = String (date), String (soundtext)
-        $stmt1->bind_param("ss", $current_datetime, $sound_text);
-        
-        if ($stmt1->execute()) {
-            $inserted_db1 = true;
-        } else {
-            throw new Exception("db1 実行エラー: " . $stmt1->error);
-        }
-        $stmt1->close();
-    }
-
-    // 3. トランザクション完了 (コミット)
-    if ($conn->commit()) {
-        $response['status'] = 'success';
-        $response['message'] = 'データが正常に保存されました。';
-        $response['saved']['db0_location'] = $inserted_db0;
-        $response['saved']['db1_text'] = $inserted_db1;
+        $stmt = $conn->prepare('INSERT INTO db0 (user_id, date, latitude, longitude) VALUES (?, ?, ?, ?)');
+        $stmt->bind_param('isdd', $userId, $currentDatetime, $latitude, $longitude);
+        $stmt->execute();
+        $stmt->close();
+        $response['saved']['db0_location'] = true;
+        saveDataLog($requestId, 'INFO', '位置情報を保存しました', [
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        ]);
     } else {
-         throw new Exception("コミットに失敗しました。");
+        saveDataLog($requestId, 'DEBUG', '位置情報は受信しませんでした');
     }
 
-} catch (Exception $e) {
-    // エラー発生時はロールバック
-    if (isset($conn) && $conn->ping()) {
-        $conn->rollback(); 
+    if ($soundText !== null) {
+        $stmt = $conn->prepare('INSERT INTO db1 (user_id, date, soundtext) VALUES (?, ?, ?)');
+        $stmt->bind_param('iss', $userId, $currentDatetime, $soundText);
+        $stmt->execute();
+        $stmt->close();
+        $response['saved']['db1_text'] = true;
+        saveDataLog($requestId, 'INFO', '音声テキストを保存しました', [
+            'length' => mb_strlen($soundText),
+            'preview' => mb_substr($soundText, 0, 120),
+        ]);
+    } else {
+        saveDataLog($requestId, 'WARN', '音声テキストが有効ではないため保存しませんでした', [
+            'raw_text_length' => $rawSoundTextLength,
+            'preview' => $rawSoundPreview,
+        ]);
     }
-    $response['status'] = 'error';
+
+    $conn->commit();
+    $response['status'] = 'success';
+    $response['message'] = 'データを保存しました。';
+    saveDataLog($requestId, 'INFO', 'トランザクションをコミットしました', [
+        'saved' => $response['saved'],
+    ]);
+} catch (Throwable $e) {
+    if (isset($conn) && $conn instanceof mysqli) {
+        $conn->rollback();
+    }
     $response['message'] = $e->getMessage();
-
+    saveDataLog($requestId, 'ERROR', '保存処理で例外が発生しました', [
+        'error' => $e->getMessage(),
+    ]);
 } finally {
-    // 接続を閉じる
-    if (isset($conn) && $conn->ping()) {
+    if (isset($conn) && $conn instanceof mysqli) {
         $conn->close();
     }
 }
 
-// 最終的な応答をJSONで出力
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-
-?>
-
+saveDataLog($requestId, 'INFO', 'レスポンスを返却しました', [
+    'status' => $response['status'],
+    'saved' => $response['saved'],
+]);

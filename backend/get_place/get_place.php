@@ -209,42 +209,49 @@ class Tracker {
 }
 
 // ====== メイン処理 ======
-$res = $conn->query("SELECT date, latitude, longitude FROM db0 WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY date ASC");
+$res = $conn->query(
+    "SELECT user_id, date, latitude, longitude
+     FROM db0
+     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+     ORDER BY user_id ASC, date ASC"
+);
 $rows = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 
 $spot_cache = [];
-$trk = new Tracker($spot_cache, $GOOGLE_API_KEY);
-$stmt = $conn->prepare("INSERT INTO db1_1 (date, location) VALUES (?, ?)");
+$trackers = [];
+
+$stmt = $conn->prepare("INSERT INTO db1_1 (user_id, date, location) VALUES (?, ?, ?)");
+$userIdParam = 0;
+$dateParam = '';
+$placeParam = '';
+$stmt->bind_param('iss', $userIdParam, $dateParam, $placeParam);
 
 foreach ($rows as $r) {
+    $userId = (int)($r['user_id'] ?? 0);
+    if ($userId <= 0) {
+        dbg("skip row without valid user_id: {$r['date']}");
+        continue;
+    }
     $ts = strtotime($r['date']);
     $lat = (float)$r['latitude'];
     $lon = (float)$r['longitude'];
 
-    $result = $trk->update($lat, $lon, $ts);
+    if (!isset($trackers[$userId])) {
+        $trackers[$userId] = new Tracker($spot_cache, $GOOGLE_API_KEY);
+    }
+
+    $result = $trackers[$userId]->update($lat, $lon, $ts);
     $place = $result['place'];
-    $stmt->bind_param("ss", $r['date'], $place);
+
+    $userIdParam = $userId;
+    $dateParam = $r['date'];
+    $placeParam = $place;
     $stmt->execute();
 
-    dbg("{$r['date']} => {$place}");
+    dbg("user_id={$userId} {$r['date']} => {$place}");
 }
 
 $stmt->close();
 $conn->close();
 
 echo "✅ 完了: db1_1 に保存しました。\n";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

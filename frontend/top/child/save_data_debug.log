@@ -1,0 +1,8 @@
+[2025-11-04 10:40:41][INFO][c2496a3d3216bde8] リクエストを受信しました {"method":"POST","content_type":"application/x-www-form-urlencoded; charset=UTF-8","raw_length":56,"user_id":1}
+[2025-11-04 10:40:41][DEBUG][c2496a3d3216bde8] 解析後のペイロード {"payload":{"latitude":"34.677226739207576","longitude":"135.09345982429036"}}
+[2025-11-04 10:40:41][DEBUG][c2496a3d3216bde8] 音声テキストが未入力または空文字です
+[2025-11-04 10:40:41][INFO][c2496a3d3216bde8] DB接続に成功しました
+[2025-11-04 10:40:41][INFO][c2496a3d3216bde8] 位置情報を保存しました {"latitude":34.677226739207576,"longitude":135.09345982429036}
+[2025-11-04 10:40:41][WARN][c2496a3d3216bde8] 音声テキストが有効ではないため保存しませんでした {"raw_text_length":0,"preview":""}
+[2025-11-04 10:40:41][INFO][c2496a3d3216bde8] トランザクションをコミットしました {"saved":{"db0_location":true,"db1_text":false}}
+[2025-11-04 10:40:41][INFO][c2496a3d3216bde8] レスポンスを返却しました {"status":"success","saved":{"db0_location":true,"db1_text":false}}

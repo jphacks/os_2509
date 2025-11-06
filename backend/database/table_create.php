@@ -68,9 +68,11 @@ foreach ($tables as $table) {
 echo "<div class='step'><strong>ステップ4:</strong> db0テーブル（緯度経度用）を作成中...</div>";
 $sql_db0 = "CREATE TABLE db0 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) UNSIGNED NOT NULL COMMENT 'ユーザーID',
     date DATETIME NOT NULL COMMENT '記録日時',
     latitude DECIMAL(10, 8) NULL COMMENT '緯度',
     longitude DECIMAL(11, 8) NULL COMMENT '経度',
+    INDEX idx_user (user_id),
     INDEX idx_date (date),
     INDEX idx_coords (latitude, longitude)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -102,8 +104,10 @@ if ($conn->query($sql_db1) === TRUE) {
 echo "<div class='step'><strong>ステップ6:</strong> db1_1テーブル（予備用）を作成中...</div>";
 $sql_db1_1 = "CREATE TABLE db1_1 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) UNSIGNED NOT NULL COMMENT 'ユーザーID',
     date DATETIME NOT NULL,
     location TEXT NULL COMMENT '予備フィールド',
+    INDEX idx_user (user_id),
     INDEX idx_date (date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='予備テーブル'";
@@ -118,6 +122,7 @@ if ($conn->query($sql_db1_1) === TRUE) {
 echo "<div class='step'><strong>ステップ7:</strong> db2テーブル（予備用）を作成中...</div>";
 $sql_db2 = "CREATE TABLE db2 (
     id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(11) UNSIGNED NOT NULL COMMENT 'ユーザーID',
     date DATETIME NOT NULL,
     soundsum TEXT NULL,
     place VARCHAR(255) NULL,
@@ -139,6 +144,7 @@ $sql_db3 = "CREATE TABLE db3 (
     sentence TEXT NULL,
     place VARCHAR(255) NULL,
     image MEDIUMBLOB NULL,
+    INDEX idx_user (user_id),
     INDEX idx_date (date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='予備テーブル'";
@@ -212,6 +218,7 @@ try {
     ];
 
     // データポイントを格納する配列
+    $sampleUserId = 1;
     $dataPoints = [];
     
     // 現在時刻を基準にし、キリの良い時間（例: 9:00:00）からスタート
@@ -298,7 +305,14 @@ try {
     $dataPoints[] = sprintf("('%s', %f, %f)", $currentTime->format('Y-m-d H:i:s'), $locations['home']['lat'], $locations['home']['lon']);
 
     // --- SQLを構築して実行 ---
-    $sql_insert_data = "INSERT INTO db0 (date, latitude, longitude) VALUES \n" . implode(",\n", $dataPoints);
+    $userAttachedPoints = array_map(
+        static function (string $point) use ($sampleUserId): string {
+            return sprintf("(%d, %s", $sampleUserId, substr($point, 1));
+        },
+        $dataPoints
+    );
+
+    $sql_insert_data = "INSERT INTO db0 (user_id, date, latitude, longitude) VALUES \n" . implode(",\n", $userAttachedPoints);
 
     if ($conn->query($sql_insert_data) === TRUE) {
         echo "<p class='success'>✓ db0テーブルにサンプルデータ（歩行経路）を挿入しました (" . count($dataPoints) . "件)</p>";
@@ -311,10 +325,11 @@ try {
     $result = $conn->query("SELECT * FROM db0 ORDER BY date ASC LIMIT 10");
     if ($result) {
         echo "<table>";
-        echo "<tr><th>id</th><th>date</th><th>latitude</th><th>longitude</th></tr>";
+        echo "<tr><th>id</th><th>user_id</th><th>date</th><th>latitude</th><th>longitude</th></tr>";
         while ($row = $result->fetch_assoc()) {
             echo "<tr>";
             echo "<td>" . htmlspecialchars($row['id']) . "</td>";
+            echo "<td>" . htmlspecialchars($row['user_id']) . "</td>";
             echo "<td>" . htmlspecialchars($row['date']) . "</td>";
             echo "<td>" . htmlspecialchars($row['latitude']) . "</td>";
             echo "<td>" . htmlspecialchars($row['longitude']) . "</td>";

@@ -2,10 +2,41 @@
   "use strict";
 
   const script = document.currentScript;
-  const root = script?.dataset.root ?? "../../";
-  const loginPath = script?.dataset.login ?? `${root}frontend/top/account/login.html`;
-  const sessionUrl = script?.dataset.session ?? `${root}backend/account/session.php`;
-  const logoutUrl = script?.dataset.logout ?? `${root}backend/account/logout.php`;
+  const origin = window.location.origin;
+
+  const normalizeRoot = (value) => {
+    if (!value) {
+      return "/os_2509/";
+    }
+    if (/^https?:\/\//i.test(value)) {
+      const url = new URL(value);
+      return url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
+    }
+    if (value.startsWith("/")) {
+      return value.endsWith("/") ? value : `${value}/`;
+    }
+    return `/${value.replace(/^\/+/, "")}${value.endsWith("/") ? "" : "/"}`;
+  };
+
+  const rootPath = normalizeRoot(script?.dataset.root);
+
+  const toAbsolute = (value, fallback) => {
+    const target = value ?? fallback;
+    if (!target) {
+      return origin;
+    }
+    if (/^https?:\/\//i.test(target)) {
+      return target;
+    }
+    if (target.startsWith("/")) {
+      return `${origin}${target}`;
+    }
+    return `${origin}${rootPath}${target}`;
+  };
+
+  const loginPath = toAbsolute(script?.dataset.login, "frontend/top/account/login.html");
+  const sessionUrl = toAbsolute(script?.dataset.session, "backend/account/session.php");
+  const logoutUrl = toAbsolute(script?.dataset.logout, "backend/account/logout.php");
   const redirectOnFail = script?.dataset.redirectOnFail !== "false";
 
   const state = {
@@ -50,9 +81,21 @@
   };
 
   const ensureRedirect = () => {
-    if (redirectOnFail) {
-      window.location.replace(loginPath);
+    if (!redirectOnFail) {
+      return;
     }
+
+    try {
+      const currentUrl = new URL(window.location.href);
+      const loginUrl = new URL(loginPath, origin);
+      if (currentUrl.pathname === loginUrl.pathname) {
+        return;
+      }
+    } catch (error) {
+      console.warn("Failed to evaluate redirect target:", error);
+    }
+
+    window.location.replace(loginPath);
   };
 
   window.AccountAuth = {
@@ -73,7 +116,7 @@
       try {
         await fetch(logoutUrl, {
           method: "POST",
-          credentials: "same-origin",
+          credentials: "include",
         });
       } catch (error) {
         console.error("Failed to logout:", error);
@@ -84,21 +127,34 @@
     },
   };
 
-  fetch(sessionUrl, { credentials: "same-origin" })
-    .then(async (response) => {
+  const checkSession = async () => {
+    try {
+      const response = await fetch(sessionUrl, { credentials: "include" });
+
+      if (response.status === 401 || response.status === 403) {
+        ensureRedirect();
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error(`Session check failed with status ${response.status}`);
+        console.warn(
+          `Session check returned unexpected status ${response.status}`
+        );
+        return;
       }
-      return response.json();
-    })
-    .then((payload) => {
+
+      const payload = await response.json();
       if (!payload || payload.authenticated !== true || !payload.account) {
-        throw new Error("Not authenticated");
+        ensureRedirect();
+        return;
       }
+
       setAccount(payload.account);
-    })
-    .catch((error) => {
-      console.warn("Authentication required:", error);
-      ensureRedirect();
-    });
+    } catch (error) {
+      console.error("Failed to verify session:", error);
+      // ネットワークエラーなどではリダイレクトしない。ユーザーに任せる。
+    }
+  };
+
+  checkSession();
 })();
