@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <title>つながり日記 – 絵日記カレンダー</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- 認証（元のまま） -->
+  <script src="../../shared/auth.js" data-root="../../../" defer></script>
+  <!-- メインJS -->
+  <script src="assets/js/main.js" defer></script>
+</head>
+<body>
+  <div class="page">
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <div class="content">
+      <div class="top-gap" aria-hidden="true"></div>
+      <h1 class="title">絵日記カレンダー</h1>
+      <div class="spacer" aria-hidden="true"></div>
+
+      <div class="board-wrap" id="boardWrap">
+        <div class="pin" id="pin" aria-hidden="true"></div>
+
+        <svg class="ropes" id="ropes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <line id="ropeL" x1="50" y1="10" x2="20" y2="90"></line>
+          <line id="ropeR" x1="50" y1="10" x2="80" y2="90"></line>
+        </svg>
+
+        <section class="board" aria-label="吊り下げカレンダー" id="board">
+          <div class="swipe-hint left" id="hintLeft"></div>
+          <div class="swipe-hint right" id="hintRight"></div>
+
+          <header class="cal-head">
+            <button class="nav-btn" id="prevBtn" aria-label="前の月へ">‹</button>
+            <div class="cal-month" id="monthLabel">YYYY年M月</div>
+            <button class="nav-btn" id="nextBtn" aria-label="次の月へ">›</button>
+          </header>
+
+          <div class="cal-body" id="calBody">
+            <div class="dow-row" id="dowRow"></div>
+            <div class="grid" id="grid"></div>
+          </div>
+        </section>
+      </div>
+
+      <p class="hint">左右スワイプで表示する月日を変更</p>
+    </div>
+  </div>
+
+  <div class="copyright">© <span id="y"></span> つながり絵日記</div>
+</body>
+</html>

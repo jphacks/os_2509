@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <title>つながり日記 – 絵日記</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Kosugi+Maru&family=Noto+Emoji&display=swap" rel="stylesheet">
+
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script src="../../shared/auth.js" data-root="../../../" defer></script>
+  <script src="assets/js/main.js" defer></script>
+</head>
+<body>
+  <a href="#" class="back-btn" id="backBtn"><span class="chev">←</span>戻る</a>
+
+  <div class="page book" id="book">
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <div class="content sheet" id="sheet">
+      <h1 class="title" id="title">●月●日<span class="dow">●曜日</span></h1>
+
+      <main class="paper" role="main" id="paper">
+        <figure class="img-frame">
+          <div class="no-image hidden" id="noImage">絵日記がありません</div>
+          <img id="entryImage" alt="絵日記の画像" loading="eager" decoding="async" fetchpriority="high" referrerpolicy="no-referrer">
+        </figure>
+
+        <section class="vertical-note" id="note">
+          <div class="note-lines" id="noteLines" aria-hidden="true"></div>
+          <div class="vtext" id="entryText"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="copyright-fixed">© <span id="y"></span> つながり絵日記</div>
+</body>
+</html>

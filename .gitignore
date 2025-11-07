@@ -1,0 +1,7 @@
+backend/gpt_api/env/.env 
+
+# .envファイル（秘密情報）を無視する
+.env
+env/.env
+memo.txt
+

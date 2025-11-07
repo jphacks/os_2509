@@ -1,0 +1,351 @@
+/* 卵のアニメーション用CSS */
+
+.egg-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1.5rem auto;
+  padding: 1rem;
+}
+
+.egg-wrapper {
+  position: relative;
+  width: 180px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 卵本体 */
+.egg-shell {
+  position: relative;
+  width: 150px;
+  height: 190px;
+  background: linear-gradient(135deg, 
+    #fff9e6 0%, 
+    #ffe4b3 30%, 
+    #ffd699 60%, 
+    #ffcc80 100%
+  );
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  box-shadow: 
+    inset -5px -10px 20px rgba(255, 200, 100, 0.3),
+    inset 5px 10px 20px rgba(255, 255, 255, 0.5),
+    0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: all 0.5s ease;
+}
+
+/* ひび割れレイヤー */
+.crack-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+/* ひび割れ段階 */
+.egg-shell.stage-1 .crack-1 {
+  opacity: 1;
+  transform: scale(1);
+  animation: crackAppear 0.3s ease-out;
+}
+
+.egg-shell.stage-2 .crack-1,
+.egg-shell.stage-2 .crack-2 {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.egg-shell.stage-2 .crack-2 {
+  animation: crackAppear 0.3s ease-out;
+}
+
+.egg-shell.stage-3 .crack-1,
+.egg-shell.stage-3 .crack-2,
+.egg-shell.stage-3 .crack-3 {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.egg-shell.stage-3 .crack-3 {
+  animation: crackAppear 0.3s ease-out;
+}
+
+.egg-shell.stage-3 {
+  animation: eggShake 0.5s ease-in-out;
+}
+
+/* 孵化アニメーション */
+.egg-shell.hatching {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s ease-out;
+}
+
+/* 孵化したひよこ */
+.hatched-chick {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: chickHatch 0.8s ease-out forwards;
+  background-color: transparent; /* 明示的に透過にする */
+}
+
+.hatched-chick.show {
+  opacity: 1;
+}
+
+.chick-emoji {
+  font-size: 4rem;
+  display: inline-block;
+  animation: chickBounce 0.6s ease-in-out infinite;
+}
+
+/* 殻の破片 */
+.shell-pieces {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.shell-piece {
+  position: absolute;
+  width: 70px;
+  height: 90px;
+  background: linear-gradient(135deg, #fff9e6, #ffd699);
+  border: 2px solid #ffcc80;
+  opacity: 0;
+}
+
+.shell-left {
+  top: 20%;
+  left: 0;
+  border-radius: 50% 30% 20% 80%;
+  transform-origin: right center;
+}
+
+.shell-right {
+  top: 20%;
+  right: 0;
+  border-radius: 30% 50% 80% 20%;
+  transform-origin: left center;
+}
+
+.shell-pieces.show .shell-left {
+  animation: shellFallLeft 1s ease-out forwards;
+}
+
+.shell-pieces.show .shell-right {
+  animation: shellFallRight 1s ease-out forwards;
+}
+
+/* 文字数カウンター */
+.character-counter {
+  margin-top: 1rem;
+  text-align: center;
+  font-family: 'Yomogi', cursive;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+#char-count {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ff9800;
+}
+
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.progress-dots .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: all 0.3s ease;
+}
+
+.progress-dots .dot.active {
+  background: linear-gradient(135deg, #ff9800, #ff6b00);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.4);
+  transform: scale(1.2);
+}
+
+/* ユーティリティ */
+.hidden {
+  display: none !important;
+}
+
+
+/* 
+ * 動物GIF表示用の追加スタイル
+ * egg-animation.css に追加してください
+ */
+
+/* 動物GIF画像のスタイル */
+.hatched-chick .animal-gif {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 12px;
+  animation: bounceIn 0.6s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 動物名の表示 */
+.hatched-chick .animal-name {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ff6b9d;
+  text-align: center;
+  animation: fadeIn 0.8s ease-out 0.3s both;
+}
+
+/* バウンスインアニメーション */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0) translateY(-20px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) translateY(-5px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* フェードインアニメーション */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 600px) {
+  .hatched-chick .animal-gif {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .hatched-chick .animal-name {
+    font-size: 14px;
+  }
+}
+
+
+/* アニメーション定義 */
+
+@keyframes crackAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes eggShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-2deg) scale(1.02); }
+  20%, 40%, 60%, 80% { transform: rotate(2deg) scale(1.02); }
+}
+
+@keyframes chickHatch {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes chickBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shellFallLeft {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-80px, 150px) rotate(-45deg);
+  }
+}
+
+@keyframes shellFallRight {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(80px, 150px) rotate(45deg);
+  }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 600px) {
+  .egg-wrapper {
+    width: 150px;
+    height: 190px;
+  }
+  
+  .egg-shell {
+    width: 120px;
+    height: 160px;
+  }
+  
+  .chick-emoji {
+    font-size: 3rem;
+  }
+  
+  .character-counter {
+    font-size: 1rem;
+  }
+  
+  #char-count {
+    font-size: 1.3rem;
+  }
+}

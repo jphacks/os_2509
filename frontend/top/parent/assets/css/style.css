@@ -1,0 +1,299 @@
+:root{
+  --ink: #0b1320;
+  --paper: #fffef9;
+  --rule: rgba(0, 64, 160, .10);
+  --margin: #ff6b6b;
+  --accent: #2e6aff;
+  --spine: #e9e0d2;
+  --spine-shadow: rgba(0,0,0,.18);
+
+  /* 左の綴じ＋安全余白 */
+  --content-left: calc(clamp(6vmin, 12vw, 8vmin) + 4vmin);
+
+  /* 右パディング */
+  --right-pad: clamp(10px, 4vw, 20px);
+
+  /* 縦方向の余白・各コンポーネントの隙間 */
+  --gap: clamp(8px, 2vh, 18px);
+
+  /* 枠線（中は無地） */
+  --note-border: 2px solid rgba(10,20,60,.14);
+
+  /* 中央カラムの最大幅 */
+  --canvas-w: min(
+    calc(100vw - var(--content-left) - var(--right-pad) - 2vmin),
+    520px
+  );
+
+  /* 縦線の見た目 */
+  --note-line-w: 1px;
+  --note-line-color: rgba(0,0,80,.20);
+  --note-radius: 8px;
+
+  /* ページめくり（下隅） */
+  --flip-dur: 720ms;
+
+  /* 付箋カラー */
+  --postit: #ffe68a;
+  --postit-shadow: rgba(0,0,0,.18);
+}
+
+/* ==== 画面ロック（スクロール不可） ==== */
+html, body{
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;            /* ← 画面ロック */
+}
+*, *::before, *::after { box-sizing: border-box; }
+
+body{
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Meiryo", sans-serif;
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+  touch-action: pan-x pan-y;
+  min-height: 100svh;
+  overscroll-behavior: none;   /* バウンス抑制 */
+}
+
+.page{
+  position: relative;
+  min-height: 100svh;
+  height: 100svh;              /* ← 1画面に固定 */
+  padding: max(1.2vmin, env(safe-area-inset-top))
+           max(1.2vmin, env(safe-area-inset-right))
+           max(1.2vmin, env(safe-area-inset-bottom))
+           max(1.2vmin, env(safe-area-inset-left));
+  overflow: clip;               /* ← はみ出しを切る（内部スクロールを発生させない） */
+  background:
+    /* 左の赤い余白線 */
+    linear-gradient(90deg, var(--margin) 0 0.5vmin, transparent 0.5vmin)
+      clamp(7vmin, 10vw, 9vmin) 0/100% 100% no-repeat,
+    /* 横罫線 */
+    repeating-linear-gradient(180deg, transparent 0 calc(6.6vmin - 1px), var(--rule) calc(6.6vmin - 1px) 6.6vmin);
+}
+@supports not (height: 100svh){ .page{ min-height:100vh; height:100vh; } }
+
+/* 綴じ（ハッチ） */
+.spine{
+  position: absolute; left: 0; top: 0; bottom: 0; width: clamp(6vmin, 12vw, 8vmin);
+  background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(0,0,0,.05)),
+              repeating-linear-gradient(45deg, #efe7d6 0 10px, #e6dcc8 10px 20px);
+  box-shadow: inset -12px 0 20px rgba(0,0,0,.04), 6px 0 12px var(--spine-shadow);
+  z-index: 2;
+}
+.spine::before{ content:""; position:absolute; left: 50%; top: 1.2vmin; bottom: 1.2vmin; width: 2px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(180deg, #c7bca8 0 10px, transparent 10px 18px); opacity: .85;
+}
+.punches{ position: absolute; left: clamp(3.6vmin, 6.2vw, 4.4vmin); top: 1vmin; bottom: 1vmin; width: 1.6vmin;
+  background:
+    radial-gradient(circle at 50% 6%, rgba(0,0,0,.18) 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y,
+    radial-gradient(circle at 50% 50%, #ffffff 0 48%, transparent 50%) 0 0/100% 7.2vmin repeat-y;
+  mix-blend-mode: multiply; opacity:.9; filter: blur(.15px); pointer-events:none; z-index:1;
+}
+
+/* 上部のテープ */
+.tape{ position:absolute; z-index:3; width: clamp(9vmin, 22vw, 16vmin); height: clamp(2.2vmin, 4.2vw, 3vmin);
+  background: repeating-linear-gradient(45deg, #f7e7a7 0 10px, #f3d98b 10px 20px);
+  opacity:.92; box-shadow: 0 0.8vmin 2vmin rgba(0,0,0,.18);
+}
+.tape.tl{ top: 1.2vmin; left: clamp(10vmin, 14vw, 12vmin); transform: rotate(-7deg); }
+.tape.tr{ top: 1.2vmin; right: clamp(1.2vmin, 3vw, 1.6vmin); transform: rotate(5deg); }
+
+.content{
+  position: relative; z-index: 4;
+  display: flex; flex-direction: column; gap: var(--gap);
+  padding-left: var(--content-left);
+  padding-right: var(--right-pad);
+  padding-block: clamp(6px, 3.2vmin, 28px);
+  max-width: 100%;
+  overflow: clip;              /* ← コンテンツ側もオーバーフローを抑止 */
+}
+
+.title{
+  font-family: "Yomogi", cursive;
+  font-size: clamp(24px, 8vw, 34px);
+  letter-spacing: .04em;
+  margin: 0 auto;
+  text-align: center;
+  text-shadow: .12px 0 #172036, -.12px 0 #172036, 0 .12px #172036, 0 -.12px #172036;
+  margin-top: clamp(10px, 2.4vmin, 24px);
+}
+.title .dow{ margin-left: 0.3em; display: inline-block; }
+
+.paper{
+  width: var(--canvas-w);
+  margin: 0 auto;
+  margin-top: clamp(4px, 3vh, 24px);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--gap);
+  min-height: 0;              /* 内部オーバーフロー計算の安定化 */
+}
+
+figure{ margin: 0; }
+
+.img-frame{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #ffffff;
+  border: var(--note-border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.img-frame img{
+  position:absolute; inset:0; width: 100%; height: 100%;
+  object-fit: cover; border-radius: 0;
+}
+
+/* 画像なし日のプレースホルダ */
+.no-image{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: "Yomogi","Kosugi Maru",cursive;
+  font-size: clamp(18px, 6vw, 28px);
+  color: rgba(20,30,60,.55);
+  background:
+    repeating-linear-gradient(45deg, rgba(0,0,0,.015) 0 12px, rgba(0,0,0,.03) 12px 24px);
+  text-shadow: 0 1px 0 rgba(255,255,255,.7);
+  user-select: none;
+  pointer-events: none;
+}
+.no-image.hidden{ display:none; }
+
+/* 説明枠 */
+.vertical-note{
+  position: relative; width: 100%; aspect-ratio: 8 / 9;
+  border: var(--note-border); border-radius: var(--note-radius); overflow: hidden;
+  background: #fff;
+}
+
+/* 縦線キャンバス（テキストの下） */
+.note-lines{
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: transparent;
+}
+
+/* 説明文（縦書き） */
+.vtext{
+  position: absolute;
+  inset: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: "Yomogi", "Kosugi Maru", "Noto Emoji", cursive;
+  color: var(--ink);
+  font-size: clamp(14px, 4.2vw, 19px);
+  line-height: 1.84;
+  letter-spacing: .03em;
+  overflow: auto;             /* ← ここだけ内部スクロール可（本文が長い場合） */
+  scrollbar-gutter: stable both-edges;
+  text-shadow: .1px 0 #1e2640, -.1px 0 #1e2640, 0 .1px #1e2640, 0 -.1px #1e2640;
+  font-weight: 500;
+  padding-inline-end: 6px;
+  padding-block-start: 4px;
+  padding-block-end: 4px;
+  background: transparent;
+  z-index: 1;
+}
+.vtext p{ margin: 0 0 .7em 0; }
+
+/* 右下の著作表記（固定） */
+.copyright-fixed{
+  position: fixed;
+  right: max(1.2vmin, env(safe-area-inset-right));
+  bottom: max(1.2vmin, env(safe-area-inset-bottom));
+  color:#2b3452; opacity:.8;
+  font-size: clamp(10px, 3vw, 14px);
+  z-index: 10; pointer-events:none;
+}
+
+/* 左上・戻るボタン（付箋） */
+.back-btn{
+  position: fixed;
+  left: max(1.2vmin, env(safe-area-inset-left));
+  top:  max(1.2vmin, env(safe-area-inset-top));
+  z-index: 12;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  min-width: 86px; justify-content: center;
+  color: #25304d; text-decoration: none; font-weight: 700;
+  font-family: "Yomogi","Hiragino Maru Gothic ProN","Kosugi Maru",cursive;
+  transform: rotate(-3deg);
+  background: linear-gradient(180deg, var(--postit) 0%, #fff4b6 100%);
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 10px;
+  box-shadow:
+    0 18px 24px var(--postit-shadow),
+    0 2px 0 rgba(255,255,255,.85) inset,
+    0 -1px 0 rgba(0,0,0,.06) inset;
+  isolation: isolate;
+}
+.back-btn::before{
+  content:"";
+  position:absolute; left: 10px; right: 10px; top: -7px; height: 12px;
+  background: linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.03));
+  border-radius: 2px;
+  opacity:.35; filter: blur(.2px);
+}
+.back-btn::after{
+  content:"";
+  position:absolute; right: 0; top: 0; width: 18px; height: 18px;
+  background: linear-gradient(135deg, rgba(0,0,0,.10), rgba(0,0,0,0));
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform: translate(1px,-1px);
+  opacity:.22;
+}
+.back-btn .chev{ font-size: 18px; line-height: 1; }
+.back-btn:active{ transform: rotate(-3deg) translateY(1px); }
+
+/* クロスフェード */
+.fade-out { animation: fadeOut .18s ease forwards; }
+.fade-in  { animation: fadeIn  .18s ease .12s forwards; opacity:0; }
+@keyframes fadeOut { to { opacity: .0 } }
+@keyframes fadeIn  { to { opacity: 1 } }
+
+/* 下隅の“めくり” */
+.page-curl{
+  position: absolute;
+  width: 100vmin; height: 100vmin;
+  pointer-events: none;
+  z-index: 9;
+  background:
+    radial-gradient(140% 140% at 100% 100%, rgba(0,0,0,.18), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, #fffefc, #f3efe8);
+  box-shadow: -12px -16px 28px rgba(0,0,0,.20);
+  opacity: .98;
+}
+.page-curl.right{
+  right: 0; bottom: 0;
+  transform-origin: bottom right;
+  clip-path: polygon(100% 100%, 0 100%, 100% 0);
+}
+.page-curl.left{
+  left: 0; bottom: 0;
+  transform-origin: bottom left;
+  clip-path: polygon(0 100%, 100% 100%, 0 0);
+  box-shadow: 12px -16px 28px rgba(0,0,0,.20);
+}
+@keyframes curlFromRightBottom {
+  0%   { transform: rotateZ(0deg) rotateX(0deg) translate(0,0); opacity:.98; }
+  55%  { transform: rotateZ(-16deg) rotateX(-28deg) translate(-10vmin, -10vmin); }
+  100% { transform: rotateZ(-48deg) rotateX(-72deg) translate(-40vmin, -36vmin); opacity:.08; }
+}
+@keyframes curlFromLeftBottom {
+  0%   { transform: rotateZ(0deg) rotateX(0deg) translate(0,0); opacity:.98; }
+  55%  { transform: rotateZ(16deg) rotateX(-28deg) translate(10vmin, -10vmin); }
+  100% { transform: rotateZ(48deg) rotateX(-72deg) translate(40vmin, -36vmin); opacity:.08; }
+}
+.anim-right { animation: curlFromRightBottom var(--flip-dur) ease forwards; }
+.anim-left  { animation: curlFromLeftBottom  var(--flip-dur) ease forwards; }

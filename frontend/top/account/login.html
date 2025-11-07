@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connection Diary ログイン</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&family=Yomogi&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/os_2509/frontend/top/account/assets/css/style.css" />
+</head>
+<body>
+  <div class="table-stage">
+    <div class="book-scene">
+      <div class="book-shadow" aria-hidden="true"></div>
+      <div class="book-container" id="bookContainer" aria-label="Connection Diary のノート">
+        <div class="page page--cover" data-page="0">
+          <div class="page-front cover-front">
+            <div class="cover-header">
+              <span class="cover-label">Connection Diary</span>
+              <span class="cover-badge">Test Login</span>
+            </div>
+            <div class="cover-body">
+              <h1 class="cover-title">Connection Diary</h1>
+              <p class="cover-subtitle">小さな“気づき”を書き留めるためのテスト用ログインです。お名前だけで参加できます。</p>
+              <form id="loginForm" class="cover-form" autocomplete="off" novalidate>
+                <label for="nameInput" class="cover-label-text">お名前<span class="cover-required">（必須）</span></label>
+                <input id="nameInput" name="name" type="text" maxlength="120" placeholder="例：みらい" required />
+                <p class="cover-helper">※ テスト環境のためお名前のみでログインできます。</p>
+                <button type="submit" id="loginButton" class="cover-button">ログイン</button>
+                <div id="message" class="cover-message" role="alert" aria-live="polite"></div>
+              </form>
+            </div>
+          </div>
+          <div class="page-back cover-back">
+            <div class="cover-back-pattern" aria-hidden="true"></div>
+            <p class="cover-back-text">Connection Diary</p>
+          </div>
+        </div>
+
+        <div class="page page--inner" data-page="1">
+          <div class="page-front inner-front">
+            <div class="inner-page-content">
+              <h2>今日のひとこと</h2>
+              <p>「今日の声は、明日の宝ものになる。」</p>
+              <span class="inner-caption">背景メモより引用</span>
+            </div>
+          </div>
+          <div class="page-back inner-back">
+            <div class="lined-paper" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="page page--inner" data-page="2">
+          <div class="page-front inner-front">
+            <div class="inner-page-content">
+              <h2>ログイン後の流れ</h2>
+              <ol>
+                <li>録音・記録ページを選択します。</li>
+                <li>記録するたびに user_id が紐づきます。</li>
+                <li>安心して日々の気づきを書き留めてください。</li>
+              </ol>
+            </div>
+          </div>
+          <div class="page-back inner-back">
+            <div class="lined-paper" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="page page--inner" data-page="3">
+          <div class="page-front inner-front">
+            <div class="inner-page-content">
+              <h2>書き方のヒント</h2>
+              <ol>
+                <li>一日の中で印象に残った瞬間を一言でまとめましょう。</li>
+                <li>気づいたことは短い文でも記録しておくと後で役立ちます。</li>
+                <li>未来の自分へ届けたいメッセージを添えてみてください。</li>
+              </ol>
+            </div>
+          </div>
+          <div class="page-back inner-back">
+            <div class="lined-paper" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="page page--inner" data-page="4">
+          <div class="page-front inner-front">
+            <div class="inner-page-content">
+              <h2>週ごとのテーマ</h2>
+              <ol>
+                <li>月曜日：今週の目標とワクワクしていること。</li>
+                <li>水曜日：折り返し地点での気づきと学び。</li>
+                <li>金曜日：一週間を振り返って一番嬉しかった瞬間。</li>
+              </ol>
+            </div>
+          </div>
+          <div class="page-back inner-back">
+            <div class="lined-paper" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="page page--inner" data-page="5">
+          <div class="page-front inner-front">
+            <div class="inner-page-content">
+              <h2>便利な機能</h2>
+              <ol>
+                <li>音声入力でそのまま気持ちを残せます。</li>
+                <li>保存された記録には自動的に user_id が紐づきます。</li>
+                <li>バックアップは安全にサーバーへ保存されます。</li>
+              </ol>
+            </div>
+          </div>
+          <div class="page-back inner-back">
+            <div class="lined-paper" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="page page--inner" data-page="6">
+          <div class="page-front inner-front">
+            <div class="inner-page-content">
+              <h2>サポート情報</h2>
+              <ol>
+                <li>ご不明点はヘルプページからいつでも確認できます。</li>
+                <li>トラブル時はサポートチームが対応します。</li>
+                <li>安心して使っていただけるよう改善を続けています。</li>
+              </ol>
+            </div>
+          </div>
+          <div class="page-back inner-back">
+            <div class="lined-paper" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cookie-consent" id="cookieConsent" role="dialog" aria-live="polite">
+    <div class="cookie-consent__content">
+      <h2 class="cookie-consent__title">Cookieの使用について</h2>
+      <p class="cookie-consent__message">
+        ログイン状態を保持するためにCookieを使用します。ブラウザでCookieを許可すると、安心してログインできます。
+      </p>
+      <div class="cookie-consent__actions">
+        <button type="button" id="cookieConsentAccept" class="cookie-consent__button cookie-consent__button--primary">Cookieを許可する</button>
+        <button type="button" id="cookieConsentDecline" class="cookie-consent__button cookie-consent__button--secondary">あとで設定する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-fade" id="screenFade" aria-hidden="true"></div>
+
+  <footer class="copyright">© <span id="currentYear"></span> Connection Diary</footer>
+
+  <script src="/os_2509/frontend/top/account/assets/js/login.js"></script>
+</body>
+</html>

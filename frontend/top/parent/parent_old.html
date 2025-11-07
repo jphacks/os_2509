@@ -1,0 +1,168 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+  />
+  <title>つながり日記 – 絵日記</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Kosugi+Maru&family=Noto+Emoji&display=swap" rel="stylesheet">
+
+    <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <link rel="stylesheet" href="/os_2509/frontend/top/parent/assets/css/style.css" />
+  <script src="/os_2509/frontend/shared/auth.js" data-root="/os_2509/" defer></script>
+</head>
+<body>
+  <a href="#" class="back-btn" id="backBtn"><span class="chev">←</span>戻る</a>
+
+  <div class="page book" id="book">
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <div class="content sheet" id="sheet">
+      <h1 class="title" id="title">●月●日<span class="dow">●曜日</span></h1>
+
+      <main class="paper" role="main" id="paper">
+        <figure class="img-frame">
+          <div class="no-image hidden" id="noImage">絵日記がありません</div>
+          <img id="entryImage" alt="絵日記の画像" loading="eager" decoding="async" fetchpriority="high" referrerpolicy="no-referrer">
+        </figure>
+
+        <section class="vertical-note" id="note">
+          <div class="note-lines" id="noteLines" aria-hidden="true"></div>
+          <div class="vtext" id="entryText"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="copyright-fixed">© <span id="y"></span> つながり日記</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const titleEl = document.getElementById('title');
+  const imageEl = document.getElementById('entryImage');
+  const textEl = document.getElementById('entryText');
+  const noImageEl = document.getElementById('noImage');
+  const backBtn = document.getElementById('backBtn');
+  document.getElementById('y').textContent = new Date().getFullYear();
+
+  // 曜日の日本語配列
+  const dowList = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // 戻るボタンの処理
+  backBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    // カレンダーページが履歴にあれば戻る、なければ指定のURLへ
+    if (document.referrer && document.referrer.includes('calendar')) {
+      history.back();
+    } else {
+      // カレンダーページのパスを環境に合わせて設定してください
+      window.location.href = '/os_2509/frontend/top/calendar/calendar.html'; 
+    }
+  });
+
+  // URLパラメータを取得
+  const params = new URLSearchParams(window.location.search);
+  const entryId = params.get('id');
+  const entryDate = params.get('date');
+
+  // 日付をフォーマットする関数
+  function formatEntryDate(dateStr) {
+    try {
+      const d = new Date(dateStr);
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      const dow = dowList[d.getDay()];
+      return `${m}月${day}日<span class="dow">${dow}曜日</span>`;
+    } catch (e) {
+      return '日付不明<span class="dow">?曜日</span>';
+    }
+  }
+
+  // エラー表示
+  function showEntryError(message = '絵日記が見つかりません') {
+    titleEl.innerHTML = 'エラー';
+    noImageEl.textContent = message;
+    noImageEl.classList.remove('hidden');
+    imageEl.classList.add('hidden');
+    textEl.textContent = 'データがありませんでした。';
+  }
+
+  // 絵日記データを描画
+  function renderEntry(entry) {
+    if (!entry || !entry.date) {
+      showEntryError();
+      return;
+    }
+
+    // タイトル（日付）
+    titleEl.innerHTML = formatEntryDate(entry.date);
+
+    // 画像
+    if (entry.image) {
+      imageEl.src = entry.image;
+      noImageEl.classList.add('hidden');
+      imageEl.classList.remove('hidden');
+    } else {
+      noImageEl.classList.remove('hidden');
+      imageEl.classList.add('hidden');
+    }
+
+    // 本文
+    textEl.textContent = entry.sentence || '（本文はありません）';
+  }
+
+  // データをフェッチする
+  async function fetchEntry() {
+    if (!entryId && !entryDate) {
+      showEntryError('IDまたは日付が指定されていません');
+      return;
+    }
+
+    // get_entry.phpへのパスを構築 (このHTMLファイルと同じ階層にあると仮定)
+    const url = new URL('get_entry.php', window.location.href);
+    if (entryId) {
+      url.searchParams.set('id', entryId);
+    } else {
+      url.searchParams.set('date', entryDate);
+    }
+    url.searchParams.set('ts', Date.now()); // キャッシュ対策
+
+    try {
+      const res = await fetch(url.toString(), { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`サーバーエラー: ${res.status}`);
+      }
+      const data = await res.json();
+
+      if (data.ok && data.entry) {
+        renderEntry(data.entry);
+      } else {
+        showEntryError(data.message || '絵日記が見つかりません');
+        // 日付指定で見つからなかった場合、タイトルだけはその日付にする
+        if (entryDate && !data.entry) {
+          titleEl.innerHTML = formatEntryDate(entryDate);
+        }
+      }
+    } catch (e) {
+      console.error('絵日記データの取得に失敗:', e);
+      showEntryError('データの読み込みに失敗しました');
+    }
+  }
+
+  // 実行
+  fetchEntry();
+});
+</script>
+</body>
+</html>
+
+

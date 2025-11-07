@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>おしゃべり えにっき</title>
+
+  <!-- フォント -->
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- スタイル -->
+  <link rel="stylesheet" href="/os_2509/frontend/top/child/assets/css/style.css" />
+  <link rel="stylesheet" href="/os_2509/frontend/top/child/assets/css/egg-animation.css" />
+  <script src="/os_2509/frontend/shared/auth.js" data-root="/os_2509/" defer></script>
+</head>
+<body>
+  <!-- 左上:もどる -->
+  <a href="/os_2509/frontend/top/select/select_page.html" class="back-btn" id="backBtn">←もどる</a>
+
+  <!-- ▼ ノート背景 -->
+  <div class="page">
+    <div class="spine" aria-hidden="true"></div>
+    <div class="punches" aria-hidden="true"></div>
+    <div class="tape tl" aria-hidden="true"></div>
+    <div class="tape tr" aria-hidden="true"></div>
+
+    <!-- ▼ コンテンツ -->
+    <main class="content">
+      <!-- 上部に少し余白 -->
+      <div class="top-gap" aria-hidden="true"></div>
+
+      <!-- タイトル:中央・大きめ -->
+      <header class="header-section hero-center">
+        <h1 class="diary-title">おしゃべり えにっき</h1>
+      </header>
+
+      <!-- 🥚 卵のアニメーション -->
+      <div class="egg-container">
+        <div id="egg-animation" class="egg-wrapper">
+          <!-- 卵本体 -->
+          <div id="egg-shell" class="egg-shell">
+            <!-- 1段階目: 上部に1本（30px上 + 3px左に移動） -->
+            <svg class="crack-layer crack-1" viewBox="0 0 200 250">
+              <path d="M 97 20 L 87 60 L 102 90" 
+                    stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            
+            <!-- 2段階目: 中央に左右反転で1本追加（2px右に移動） -->
+            <svg class="crack-layer crack-2" viewBox="0 0 200 250">
+              <path d="M 102 85 L 112 125 L 97 155" 
+                    stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            
+            <!-- 3段階目: さらに下に1本追加（30px下 + 3px左に移動） -->
+            <svg class="crack-layer crack-3" viewBox="0 0 200 250">
+              <path d="M 97 150 L 87 190 L 102 220" 
+                    stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- 孵化したひよこ -->
+          <div id="hatched-chick" class="hatched-chick hidden">
+            <span class="chick-emoji">🐣</span>
+          </div>
+
+          <!-- 割れた殻の破片 -->
+          <div id="shell-pieces" class="shell-pieces hidden">
+            <div class="shell-piece shell-left"></div>
+            <div class="shell-piece shell-right"></div>
+          </div>
+        </div>
+
+        <!-- 文字数カウンター -->
+        <div class="character-counter">
+          <span id="char-count">0</span> もじ
+          <div class="progress-dots">
+            <span class="dot" data-threshold="20"></span>
+            <span class="dot" data-threshold="40"></span>
+            <span class="dot" data-threshold="60"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ステータス:タイトルとボタンの間、横向き・中央配置 -->
+      <div class="status-row">
+        <div id="status-indicator" class="status-indicator">
+          <div id="status-light" class="status-light stopped"></div>
+          <span id="status-text" class="status-text">とまっているよ</span>
+        </div>
+      </div>
+
+      <!-- エラー -->
+      <div id="error-display" class="error-box hidden" role="alert">
+        <p class="error-title">エラーが おきたよ</p>
+        <p id="error-message"></p>
+        <p class="error-tip">もういちどためすか、ブラウザの せっていを みなおしてね。</p>
+      </div>
+
+      <!-- 認識結果 -->
+      <section class="transcript-section">
+        <h2 class="section-title">きょうの できごと</h2>
+        <div id="transcript-container" class="transcript-box">
+          <p id="final-transcript" class="final-text"></p>
+          <p id="interim-transcript" class="interim-text"></p>
+        </div>
+      </section>
+
+      <!-- 下に押し下げるための可変スペーサ -->
+      <div class="flex-spacer" aria-hidden="true"></div>
+
+      <!-- ボタン -->
+      <section class="control-section pinned-bottom" aria-label="操作ボタン">
+        <button id="toggle-btn" class="diary-button primary-btn" aria-label="えにっきを つくる">
+          <span class="btn-label">
+            えにっきを<br aria-hidden="true">つくる
+          </span>
+        </button>
+        <button id="clear-btn" class="diary-button secondary-btn" aria-label="ぜんぶけす">
+          <span class="btn-label">ぜんぶけす</span>
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <!-- 右下コピーライト -->
+  <div class="copyright">© 2025 つながり絵日記</div>
+
+  <!-- 機能JS -->
+  <script src="/os_2509/frontend/top/child/assets/js/app.js"></script>
+  <script src="/os_2509/frontend/top/child/assets/js/egg-controller.js"></script>
+  <script>
+    // もどる動作
+    document.getElementById('backBtn').addEventListener('click', function(e){
+      e.preventDefault();
+      if (history.length > 1) history.back();
+      else window.location.href = '/os_2509/frontend/top/select/select_page.html';
+    });
+  </script>
+</body>
+</html>

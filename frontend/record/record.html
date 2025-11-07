@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/os_2509/frontend/shared/auth.js" data-root="/os_2509/" defer></script>
+    <title>音声録音システム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #recordBtn {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        #recordBtn.recording {
+            background-color: #f44336;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        #transcript {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 100px;
+        }
+        .location-input {
+            margin-top: 20px;
+        }
+        .location-input input {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>音声録音システム</h1>
+    
+    <div class="location-input">
+        <label for="location">場所:</label>
+        <input type="text" id="location" placeholder="例: 会議室A" value="オフィス">
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <button id="recordBtn">🎤 録音開始</button>
+    </div>
+    
+    <div id="status">
+        <strong>状態:</strong> <span id="statusText">待機中</span>
+    </div>
+    
+    <div id="transcript">
+        <strong>認識されたテキスト:</strong>
+        <div id="transcriptText"></div>
+    </div>
+
+    <script>
+        let recognition;
+        let isRecording = false;
+        let fullTranscript = '';
+
+        // Web Speech API の初期化
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+        } else if ('SpeechRecognition' in window) {
+            recognition = new SpeechRecognition();
+        } else {
+            alert('お使いのブラウザは音声認識に対応していません。Chrome/Edgeをご使用ください。');
+        }
+
+        if (recognition) {
+            recognition.continuous = true; // 連続認識
+            recognition.interimResults = true; // 途中結果も取得
+            recognition.lang = 'ja-JP'; // 日本語
+
+            const recordBtn = document.getElementById('recordBtn');
+            const statusText = document.getElementById('statusText');
+            const transcriptText = document.getElementById('transcriptText');
+            const locationInput = document.getElementById('location');
+
+            // 録音ボタンのクリックイベント
+            recordBtn.addEventListener('click', () => {
+                if (!isRecording) {
+                    startRecording();
+                } else {
+                    stopRecording();
+                }
+            });
+
+            // 録音開始
+            function startRecording() {
+                if (!locationInput.value.trim()) {
+                    alert('場所を入力してください');
+                    return;
+                }
+
+                fullTranscript = '';
+                transcriptText.innerHTML = '';
+                recognition.start();
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                recordBtn.textContent = '⏹️ 録音停止';
+                statusText.textContent = '録音中...';
+            }
+
+            // 録音停止
+            function stopRecording() {
+                recognition.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.textContent = '🎤 録音開始';
+                statusText.textContent = '待機中';
+            }
+
+            // 音声認識結果の処理
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // 確定したテキストをDBに保存
+                if (finalTranscript) {
+                    fullTranscript += finalTranscript;
+                    saveToDatabase(finalTranscript);
+                }
+
+                // 画面に表示
+                transcriptText.innerHTML = fullTranscript + 
+                    '<span style="color: #999;">' + interimTranscript + '</span>';
+            };
+
+            // エラー処理
+            recognition.onerror = (event) => {
+                console.error('音声認識エラー:', event.error);
+                statusText.textContent = 'エラー: ' + event.error;
+                
+                if (event.error === 'no-speech') {
+                    statusText.textContent = '音声が検出されませんでした';
+                } else if (event.error === 'not-allowed') {
+                    alert('マイクへのアクセスが許可されていません');
+                    stopRecording();
+                }
+            };
+
+            // 認識終了時の処理
+            recognition.onend = () => {
+                if (isRecording) {
+                    // 自動で再開(連続録音)
+                    recognition.start();
+                }
+            };
+
+            // DBに保存する関数
+            function saveToDatabase(text) {
+                const location = locationInput.value.trim();
+                
+                fetch('/os_2509/frontend/record_api/save_audio_text.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        soundtext: text,
+                        location: location
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('保存成功:', data.id);
+                    } else {
+                        console.error('保存失敗:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('通信エラー:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
