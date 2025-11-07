@@ -108,10 +108,10 @@ body{
   min-height: 100%;
   padding-left: var(--content-left);
   padding-right: clamp(10px, 4vw, 20px);
-  padding-block: clamp(10px, 4.4vh, 42px);
-  gap: clamp(8px, 2vh, 18px);
+  padding-block: clamp(12px, 6vh, 48px); /* 少し圧縮 */
+  gap: clamp(6px, 1.6vh, 16px);
 }
-.top-gap{ height: clamp(1vh, 3vh, 4vh); flex: 0 0 auto; }
+.top-gap{ height: clamp(10px, 2vh, 26px); flex: 0 0 auto; } /* さらに圧縮 */
 
 /* ===============================
  * 4. 各コンポーネントの配置・視認性
@@ -125,29 +125,32 @@ body{
 }
 .diary-title{
   font-family: "Sawarabi Mincho", "Noto Sans JP", serif;
-  font-size: clamp(28px, 7.2vw, 48px);
-  line-height: 1.2;
+  font-size: clamp(26px, 6.8vw, 44px);
+  line-height: 1.18;
   letter-spacing: .02em;
   margin: 0;
 }
 
+/* 卵とタイトルの間隔を詰める */
+.egg-container{ margin-top: 4px; }
+
 /* ステータス：タイトルとボタンの間に横1行で中央配置（ピル表示） */
 .status-row{
   display: flex; justify-content: center; align-items: center;
-  margin-top: clamp(4px, 1vh, 10px);
+  margin-top: 6px; /* 間隔を狭く */
 }
 .status-indicator{
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; /* 高さ圧縮 */
   background: rgba(255,255,255,.9);
   border: 2px solid rgba(0,0,0,.12);
   border-radius: 999px;
   box-shadow: 0 8px 18px rgba(0,0,0,.10);
   backdrop-filter: blur(2px);
 }
-.status-text{ font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.status-text{ font-size: 1rem; font-weight: 700; color: var(--ink); }
 .status-light{
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 12px; height: 12px; border-radius: 50%;
   border: 2px solid rgba(30,40,60,.6);
   transition: background-color .3s, box-shadow .3s;
 }
@@ -156,61 +159,63 @@ body{
 .waiting{ background-color: #e8f0ff; border-color: #3b82f6; }
 .stopped{ background-color: var(--color-secondary); }
 
-/* 認識結果：下寄せ＋見やすい枠 */
-.transcript-section{ margin-top: clamp(10px, 2.6vh, 20px); }
+/* 認識結果：1行程度に小型化 */
+.transcript-section{ margin-top: 8px; }
 .section-title{
   font-family: "Sawarabi Mincho","Noto Sans JP", serif;
-  font-size: clamp(18px, 4.4vw, 22px);
-  font-weight: 700; margin: 0 0 8px 0;
-  padding-left: 12px;
-  border-left: 7px solid #ff9ec0; /* タイトルと調和するピンク */
+  font-size: clamp(16px, 4vw, 20px);
+  font-weight: 700; margin: 0 0 6px 0;
+  padding-left: 10px;
+  border-left: 7px solid #ff9ec0;
   background: linear-gradient(transparent 55%, rgba(255,255,255,.75) 55%);
 }
 .transcript-box{
   background: #ffffff;
   border: 3px solid rgba(27,45,66,.22);
-  border-radius: 18px;
-  padding: clamp(16px, 2.6vh, 20px);
-  box-shadow: 0 12px 28px rgba(0,0,0,.14);
-  font-size: clamp(17px, 4.4vw, 19px);
-  min-height: 240px;
+  border-radius: 16px;
+  padding: 10px 12px;                 
+  box-shadow: 0 12px 24px rgba(0,0,0,.12);
+  font-size: clamp(16px, 4vw, 18px);
+  min-height: 56px;                  
+  max-height: 80px;                  
+  overflow: auto;                    
 }
-.final-text{ color: var(--ink); text-indent: 1em; }
-.interim-text{ color: #4f6b7a; opacity: .95; }
+.final-text{ color: var(--ink); text-indent: 1em; margin: 0; }
+.interim-text{ color: #4f6b7a; opacity: .95; margin: 0; }
 
 /* 下寄せスペーサ（ボタンを最下段へ押し下げ） */
 .flex-spacer{ flex: 1 1 auto; }
 
-/* ボタン：画面下寄せ＆左右中央・同幅に揃える */
+/* ボタン：高さを少し小さく、文言は1行に */
 .control-section.pinned-bottom{
   display: flex;
-  justify-content: center;           /* セットを左右中央に */
+  justify-content: center;
   align-items: stretch;
   gap: 12px;
-  margin-top: clamp(8px, 2vh, 16px);
-  margin-bottom: max(12px, env(safe-area-inset-bottom));  /* 端末下部の安全域 */
+  margin-top: clamp(6px, 1.6vh, 14px);
+  margin-bottom: max(10px, env(safe-area-inset-bottom));
 }
 .control-section.pinned-bottom .diary-button{
-  flex: 0 0 var(--btn-fixed-w);      /* 2つを同じ幅に */
+  flex: 0 0 var(--btn-fixed-w);
   text-align: center;
 }
 
-/* 改行表示を気持ちよく見せる */
+/* 改行表示は使わない（1行表示） */
 .btn-label{
   display: inline-block;
-  line-height: 1.25;
+  line-height: 1.2;
+  white-space: nowrap;
 }
-.btn-label br{ content: ""; }
 
-/* ボタンの見た目 */
+/* ボタンの見た目（高さ圧縮＆フォント少し小さめ） */
 .diary-button{
   display: inline-flex; align-items: center; justify-content: center;
 
-  padding: clamp(14px, 2.6vh, 18px) clamp(16px, 4vw, 22px);
+  padding: clamp(10px, 2.0vh, 14px) clamp(14px, 3.6vw, 20px); 
   border-radius: 16px; border: 3px solid rgba(30,40,60,.12);
 
   font-family: "Yomogi","Hiragino Maru Gothic ProN","Kosugi Maru","Noto Sans JP", cursive;
-  font-size: clamp(18px, 4.8vw, 22px);
+  font-size: clamp(16px, 4.4vw, 20px); 
   letter-spacing: .02em;
 
   background: linear-gradient(180deg, #fffefc, #f8f1e6);
@@ -304,3 +309,7 @@ body{
     flex: 1 1 100%;
   }
 }
+
+/* === screen lock: add at end === */
+html { overscroll-behavior: none; }  /* バウンス抑止 */
+body { overflow: hidden; }           /* スクロール無効 */

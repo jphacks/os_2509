@@ -430,20 +430,20 @@ document.addEventListener('DOMContentLoaded', () => {
             switch (state) {
                 case 'recognizing':
                     statusLight.classList.add('recognizing');
-                    statusText.textContent = '録音中...話してください';
-                    toggleBtn.textContent = '録音を停止する';
+                    statusText.textContent = 'はなしてください';
+                    toggleBtn.textContent = 'かいわをとめる';
                     toggleBtn.classList.add('stop-btn');
                     break;
                 case 'waiting':
                     statusLight.classList.add('waiting');
-                    statusText.textContent = 'マイク準備中';
-                    toggleBtn.textContent = '録音を停止する';
+                    statusText.textContent = 'じゅんび中';
+                    toggleBtn.textContent = 'かいわをとめる';
                     toggleBtn.classList.add('stop-btn');
                     break;
                 case 'stopped':
                     statusLight.classList.add('stopped');
-                    statusText.textContent = '停止中';
-                    toggleBtn.textContent = '話して日記を作る';
+                    statusText.textContent = 'とまっているよ';
+                    toggleBtn.textContent = 'はなす';
                     toggleBtn.classList.add('primary-btn');
                     break;
                 case 'error':
@@ -456,8 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 default:
                     statusLight.classList.add('stopped');
-                    statusText.textContent = '停止中';
-                    toggleBtn.textContent = '話して日記を作る';
+                    statusText.textContent = 'とまっているよ';
+                    toggleBtn.textContent = 'はなす';
                     toggleBtn.classList.add('primary-btn');
             }
         },
