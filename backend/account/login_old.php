@@ -1,8 +1,55 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../common/session.php';
-start_project_session();
+// エラーをJSON形式で返す設定
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'PHPエラーが発生しました',
+        'debug' => [
+            'error' => $errstr,
+            'file' => $errfile,
+            'line' => $errline
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Fatal error',
+            'debug' => $error
+        ], JSON_UNESCAPED_UNICODE);
+    }
+});
+
+try {
+    require_once __DIR__ . '/../common/session.php';
+    start_project_session();
+} catch (Throwable $e) {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'セッション開始エラー',
+        'debug' => [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -27,10 +74,50 @@ if (mb_strlen($name, 'UTF-8') > 120) {
     exit;
 }
 
-// require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+// $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
 
-$conn = getDbConnection();
+if (!file_exists($configPath)) {
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'config.phpが見つかりません',
+        'debug' => ['path' => $configPath]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+try {
+    require_once $configPath;
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'config.php読み込みエラー',
+        'debug' => [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+$conn = null;
+
+try {
+    $conn = getDbConnection();
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'データベース接続エラー',
+        'debug' => [
+            'error' => $e->getMessage()
+        ]
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 $closeWithError = static function (?mysqli $conn, int $statusCode, string $message): void {
     http_response_code($statusCode);
@@ -110,3 +197,6 @@ echo json_encode([
         'name' => $name,
     ],
 ], JSON_UNESCAPED_UNICODE);
+
+// $_SESSION['account_id'] = $userId;
+// $_SESSION['account_name'] = $name;

@@ -51,6 +51,15 @@ try {
     exit;
 }
 
+require_once __DIR__ . '/../common/logger.php';
+
+// ★★★ デバッグ: リクエスト開始 ★★★
+app_log('login.php: リクエスト開始', [
+    'method' => $_SERVER['REQUEST_METHOD'],
+    'session_id' => session_id(),
+    'post_data' => $_POST,
+]);
+
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -74,7 +83,8 @@ if (mb_strlen($name, 'UTF-8') > 120) {
     exit;
 }
 
-// $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+app_log('ログイン試行', ['name' => $name]);
+
 $configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
 
 if (!file_exists($configPath)) {
@@ -186,8 +196,34 @@ SQL;
 
 $conn->close();
 
+// ★★★ デバッグ: セッション保存前 ★★★
+app_log('login.php: セッションに保存する前', [
+    'session_id' => session_id(),
+    'user_id' => $userId,
+    'name' => $name,
+    'session_data_before' => $_SESSION,
+]);
+
 $_SESSION['account_id'] = $userId;
 $_SESSION['account_name'] = $name;
+
+// ★★★ デバッグ: セッション保存後 ★★★
+app_log('login.php: セッションに保存した後', [
+    'session_id' => session_id(),
+    'session_data_after' => $_SESSION,
+    'account_id_isset' => isset($_SESSION['account_id']),
+    'account_name_isset' => isset($_SESSION['account_name']),
+]);
+
+// ★★★ 明示的にセッションを保存 ★★★
+session_write_close();
+
+app_log('ログイン成功', [
+    'user_id' => $userId, 
+    'name' => $name, 
+    'session_id' => session_id(),
+    'session_closed' => true,
+]);
 
 echo json_encode([
     'status' => 'success',
@@ -197,6 +233,3 @@ echo json_encode([
         'name' => $name,
     ],
 ], JSON_UNESCAPED_UNICODE);
-
-// $_SESSION['account_id'] = $userId;
-// $_SESSION['account_name'] = $name;

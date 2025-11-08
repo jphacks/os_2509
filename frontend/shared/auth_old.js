@@ -1,29 +1,6 @@
 (function () {
   "use strict";
 
-  // ★★★ 最優先：ログインページでは何もしない ★★★
-  const currentPath = window.location.pathname;
-  if (currentPath === '/' || 
-      currentPath === '/index.php' ||
-      currentPath.includes('/login')) {
-    console.log("[auth.js] Login page detected - auth.js disabled");
-    
-    // 最小限の AccountAuth オブジェクトだけ提供
-    window.AccountAuth = {
-      get account() { return null; },
-      ready(callback) { 
-        if (typeof callback === "function") {
-          callback(null);
-        }
-      },
-      async logout() {
-        console.log("[auth.js] Logout called on login page");
-      }
-    };
-    
-    return; // ★★★ ここで処理を完全に終了 ★★★
-  }
-
   const script = document.currentScript;
   const origin = window.location.origin;
 
@@ -43,6 +20,21 @@
 
   const rootPath = normalizeRoot(script?.dataset.root);
 
+  // const toAbsolute = (value, fallback) => {
+  //   const target = value ?? fallback;
+  //   if (!target) {
+  //     return origin;
+  //   }
+  //   if (/^https?:\/\//i.test(target)) {
+  //     return target;
+  //   }
+  //   if (target.startsWith("/")) {
+  //     return `${origin}${target}`;
+  //   }
+  //   return `${origin}${rootPath}${target}`;
+  // };
+
+
   const toAbsolute = (value, fallback) => {
     const target = value ?? fallback;
     if (!target) {
@@ -54,12 +46,13 @@
     if (target.startsWith("/")) {
       return `${origin}${target}`;
     }
+    // ★★★ ここを修正：rootPathを使わない ★★★
     return `${origin}/${target.replace(/^\/+/, "")}`;
   };
 
-  const loginPath = toAbsolute(script?.dataset.login, "/frontend/top/account/login.html");
-  const sessionUrl = toAbsolute(script?.dataset.session, "/backend/account/session.php");
-  const logoutUrl = toAbsolute(script?.dataset.logout, "/backend/account/logout.php");
+  const loginPath = toAbsolute(script?.dataset.login, "/frontend/top/account/login.html");  // 先頭に / を追加
+  const sessionUrl = toAbsolute(script?.dataset.session, "/backend/account/session.php");  // 先頭に / を追加
+  const logoutUrl = toAbsolute(script?.dataset.logout, "/backend/account/logout.php");  // 先頭に / を追加
   const redirectOnFail = script?.dataset.redirectOnFail !== "false";
 
   const state = {
@@ -105,11 +98,19 @@
 
   const ensureRedirect = () => {
     if (!redirectOnFail) {
-      console.log("[auth.js] Redirect disabled by config");
       return;
     }
 
-    console.log("[auth.js] Redirecting to:", loginPath);
+    try {
+      const currentUrl = new URL(window.location.href);
+      const loginUrl = new URL(loginPath, origin);
+      if (currentUrl.pathname === loginUrl.pathname) {
+        return;
+      }
+    } catch (error) {
+      console.warn("Failed to evaluate redirect target:", error);
+    }
+
     window.location.replace(loginPath);
   };
 
@@ -143,39 +144,31 @@
   };
 
   const checkSession = async () => {
-    console.log("[auth.js] Starting session check at:", sessionUrl);
-    
     try {
       const response = await fetch(sessionUrl, { credentials: "include" });
-      console.log("[auth.js] Session response:", response.status);
 
       if (response.status === 401 || response.status === 403) {
-        console.log("[auth.js] Not authenticated (401/403)");
         ensureRedirect();
         return;
       }
 
       if (!response.ok) {
         console.warn(
-          `[auth.js] Session check returned unexpected status ${response.status}`
+          `Session check returned unexpected status ${response.status}`
         );
         return;
       }
 
       const payload = await response.json();
-      console.log("[auth.js] Session payload:", payload);
-      
       if (!payload || payload.authenticated !== true || !payload.account) {
-        console.log("[auth.js] Invalid session payload");
         ensureRedirect();
         return;
       }
 
-      console.log("[auth.js] Authenticated as:", payload.account.name);
       setAccount(payload.account);
     } catch (error) {
-      console.error("[auth.js] Failed to verify session:", error);
-      // ネットワークエラーなどではリダイレクトしない
+      console.error("Failed to verify session:", error);
+      // ネットワークエラーなどではリダイレクトしない。ユーザーに任せる。
     }
   };
 

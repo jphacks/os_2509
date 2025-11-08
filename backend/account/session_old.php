@@ -4,15 +4,9 @@ declare(strict_types=1);
 require_once __DIR__ . '/../common/session.php';
 start_project_session();
 
-// ★★★ ログ機能追加（1行目）★★★
-require_once __DIR__ . '/../common/logger.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 if (isset($_SESSION['account_id'], $_SESSION['account_name'])) {
-    // ★★★ ログ機能追加（2行目）★★★
-    app_log('セッションチェック: 認証済み', ['account_id' => $_SESSION['account_id']]);
-    
     echo json_encode([
         'authenticated' => true,
         'account' => [
@@ -22,9 +16,6 @@ if (isset($_SESSION['account_id'], $_SESSION['account_name'])) {
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
-
-// ★★★ ログ機能追加（3行目）★★★
-app_log('セッションチェック: 未認証');
 
 http_response_code(401);
 echo json_encode(['authenticated' => false], JSON_UNESCAPED_UNICODE);
