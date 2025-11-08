@@ -19,9 +19,9 @@
   <script src="assets/js/main.js" defer></script>
 </head>
 <body>
-  <!-- 履歴に関係なく /public_html/frontend/top/calendar/calendar.html へ固定遷移 -->
+  <!-- 履歴に関係なく /frontend/top/calendar/calendar.html へ固定遷移 -->
   <a
-    href="/public_html/frontend/top/calendar/calendar.html"
+    href="/frontend/top/calendar/calendar.html"
     class="back-btn"
     id="backBtn"
     data-fixed-nav="1"
@@ -30,7 +30,7 @@
   <!-- ★ この位置でキャプチャ・リスナーを仕込む（他のJSより先に動かす） -->
   <script>
     (function () {
-      const TARGET = '/public_html/frontend/top/calendar/calendar.html';
+      const TARGET = '/frontend/top/calendar/calendar.html';
       const btn = document.getElementById('backBtn');
       if (!btn) return;
       // キャプチャ段階で他のリスナーより先に実行し、固定遷移に統一

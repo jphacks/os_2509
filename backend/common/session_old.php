@@ -6,7 +6,7 @@ declare(strict_types=1);
  * and when the project is exposed via tunnelling services (e.g. ngrok).
  *
  * This ensures:
- *  - cookie path is rooted at the project (`/public_html/`)
+ *  - cookie path is rooted at the project (`/`)
  *  - cookie domain matches the current request host (no hard-coded localhost)
  *  - Secure flag follows the current scheme (https → true)
  *  - HttpOnly + SameSite=Lax for better security while keeping first-party fetches working
@@ -46,7 +46,7 @@ function start_project_session(): void
 
     $cookieParams = [
         'lifetime' => 0,
-        'path' => '/public_html/',
+        'path' => '/',
         'secure' => $isHttps,
         'httponly' => true,
         'samesite' => $sameSite,

@@ -9,7 +9,8 @@ $dotenv->load();
 
 // 2. データベース接続
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/config/config.php';
+// require_once __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+require_once '/home/xs413160/tunagaridiary.com/private/config/config.php';
 $conn = getDbConnection();
 echo "データベースに正常に接続しました。\n";
 

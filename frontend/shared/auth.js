@@ -6,7 +6,7 @@
 
   const normalizeRoot = (value) => {
     if (!value) {
-      return "/public_html/";
+      return "/";
     }
     if (/^https?:\/\//i.test(value)) {
       const url = new URL(value);
@@ -20,6 +20,21 @@
 
   const rootPath = normalizeRoot(script?.dataset.root);
 
+  // const toAbsolute = (value, fallback) => {
+  //   const target = value ?? fallback;
+  //   if (!target) {
+  //     return origin;
+  //   }
+  //   if (/^https?:\/\//i.test(target)) {
+  //     return target;
+  //   }
+  //   if (target.startsWith("/")) {
+  //     return `${origin}${target}`;
+  //   }
+  //   return `${origin}${rootPath}${target}`;
+  // };
+
+
   const toAbsolute = (value, fallback) => {
     const target = value ?? fallback;
     if (!target) {
@@ -31,12 +46,13 @@
     if (target.startsWith("/")) {
       return `${origin}${target}`;
     }
-    return `${origin}${rootPath}${target}`;
+    // ★★★ ここを修正：rootPathを使わない ★★★
+    return `${origin}/${target.replace(/^\/+/, "")}`;
   };
 
-  const loginPath = toAbsolute(script?.dataset.login, "frontend/top/account/login.html");
-  const sessionUrl = toAbsolute(script?.dataset.session, "backend/account/session.php");
-  const logoutUrl = toAbsolute(script?.dataset.logout, "backend/account/logout.php");
+  const loginPath = toAbsolute(script?.dataset.login, "/frontend/top/account/login.html");  // 先頭に / を追加
+  const sessionUrl = toAbsolute(script?.dataset.session, "/backend/account/session.php");  // 先頭に / を追加
+  const logoutUrl = toAbsolute(script?.dataset.logout, "/backend/account/logout.php");  // 先頭に / を追加
   const redirectOnFail = script?.dataset.redirectOnFail !== "false";
 
   const state = {

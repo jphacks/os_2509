@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const origin = window.location.origin;
-  const basePath = `${origin}/public_html`;
+  const basePath = `${origin}`;
   const sessionEndpoint = `${basePath}/backend/account/session.php`;
   const loginEndpoint = `${basePath}/backend/account/login.php`;
   const selectPageUrl = `${basePath}/frontend/top/select/select_page.html`;
@@ -61,16 +61,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // const verifyCookieSupport = () => {
+  //   try {
+  //     const testName = "cd_cookie_test";
+  //     const attributes = ["path=", "max-age=60"];
+  //     if (window.location.protocol === "https:") {
+  //       attributes.push("SameSite=None", "Secure");
+  //     }
+  //     document.cookie = `${testName}=1; ${attributes.join("; ")}`;
+  //     const supported = document.cookie.includes(`${testName}=1`);
+  //     document.cookie = `${testName}=; path=; max-age=0`;
+  //     return supported;
+  //   } catch (error) {
+  //     console.warn("Cookie support check failed:", error);
+  //     return false;
+  //   }
+  // };
   const verifyCookieSupport = () => {
     try {
       const testName = "cd_cookie_test";
-      const attributes = ["path=/public_html", "max-age=60"];
+      const attributes = ["path=/", "max-age=60"];
+      // HTTPSの場合でもLaxを使用（session.phpと一致させる）
       if (window.location.protocol === "https:") {
-        attributes.push("SameSite=None", "Secure");
+        attributes.push("SameSite=Lax", "Secure");  // None → Lax に変更
       }
       document.cookie = `${testName}=1; ${attributes.join("; ")}`;
       const supported = document.cookie.includes(`${testName}=1`);
-      document.cookie = `${testName}=; path=/public_html; max-age=0`;
+      document.cookie = `${testName}=; path=/; max-age=0`;
       return supported;
     } catch (error) {
       console.warn("Cookie support check failed:", error);
@@ -211,8 +228,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // const redirectToHome = () => {
+  //   window.location.assign(selectPageUrl);
+  // };
   const redirectToHome = () => {
-    window.location.assign(selectPageUrl);
+    // 直接select_page.htmlではなく、index.phpを経由
+    window.location.assign('/');  // または window.location.href = '/';
   };
 
   const playSuccessSequence = async () => {
@@ -343,6 +364,13 @@ document.addEventListener("DOMContentLoaded", () => {
       await triggerFade();
       redirectToHome();
       return;
+      // // デバッグ用：詳細をコンソールに出力
+      // console.log("=== ログインレスポンス ===");
+      // console.log("Status:", response.status);
+      // console.log("Response:", result);
+      // console.log("=====================");
+
+      // showMessage("ログインしました。デバッグモードのためリダイレクトしません。", "success");
     } catch (error) {
       console.error("Login error:", error);
       processing = false;

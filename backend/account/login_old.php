@@ -28,7 +28,7 @@ if (mb_strlen($name, 'UTF-8') > 120) {
 }
 
 // require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../../../private/config/config.php';
+require_once __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
 
 $conn = getDbConnection();
 

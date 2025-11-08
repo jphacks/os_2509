@@ -9,12 +9,28 @@ if ($userId <= 0) {
 }
 header('Content-Type: application/json; charset=utf-8');
 
-$mysqli = new mysqli('localhost', 'backhold', 'backhold', 'back_db1');
-if ($mysqli->connect_error) {
-    http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'DB接続失敗: ' . $mysqli->connect_error], JSON_UNESCAPED_UNICODE);
-    exit;
+// config.phpを読み込む
+// $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
+if (!file_exists($configPath)) {
+    die("エラー: config.phpが見つかりません。パス: " . $configPath);
 }
+require_once $configPath;
+
+// config.phpで定義された定数を使用
+$servername = DB_SERVER;
+$username   = DB_USERNAME;
+$password   = DB_PASSWORD;
+$dbname     = DB_NAME;
+
+// データベース接続
+$mysqli = new mysqli($servername, $username, $password, $dbname);
+// $mysqli = new mysqli('localhost', 'backhold', 'backhold', 'back_db1');
+// if ($mysqli->connect_error) {
+//     http_response_code(500);
+//     echo json_encode(['ok' => false, 'error' => 'DB接続失敗: ' . $mysqli->connect_error], JSON_UNESCAPED_UNICODE);
+//     exit;
+// }
 $mysqli->set_charset('utf8mb4');
 
 // imageカラムを追加し、ORDER BY に id ASC を追加

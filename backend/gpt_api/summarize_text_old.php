@@ -9,10 +9,20 @@ $dotenv->load();
 
 // 2. データベース接続情報
 // --------------------------------------------------
-$servername = "localhost";
-$username   = "backhold";
-$password   = "backhold";
-$dbname     = "back_db1"; // 正しいデータベース名
+// config.phpを読み込む
+// $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
+if (!file_exists($configPath)) {
+    die("エラー: config.phpが見つかりません。パス: " . $configPath);
+}
+require_once $configPath;
+
+// config.phpで定義された定数を使用
+$servername = DB_SERVER;
+$username   = DB_USERNAME;
+$password   = DB_PASSWORD;
+$dbname     = DB_NAME;
+
 
 
 // 3. データベースから元データを取得

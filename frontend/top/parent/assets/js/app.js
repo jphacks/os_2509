@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const API_BASE = '/public_html/frontend/top/calendar/entry_api.php';
+  const API_BASE = '/frontend/top/calendar/entry_api.php';
 
   // ===== 年度 =====
   const yEl = document.getElementById('y');
@@ -236,7 +236,7 @@
       backBtn.addEventListener('click', (e)=>{
         e.preventDefault();
         if (history.length > 1) history.back();
-        else window.location.href = '/public_html/frontend/top/calendar/calendar.html';
+        else window.location.href = '/frontend/top/calendar/calendar.html';
       });
     }
 

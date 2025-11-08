@@ -13,12 +13,12 @@ ini_set('memory_limit', '1024M');
 mb_internal_encoding('UTF-8');
 
 // ====== Composer autoload と .env 読み込み ======
-require_once __DIR__ . '/../../../private/vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
+require_once '/home/xs413160/tunagaridiary.com/private/vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable('/home/xs413160/tunagaridiary.com/private/env');
 $dotenv->load();
 
 // ====== DB接続設定読み込み ======
-require_once __DIR__ . '/../../../private/config/config.php';
+require_once '/home/xs413160/tunagaridiary.com/private/config/config.php';
 $conn = getDbConnection();
 
 // ====== Google APIキー取得 ======

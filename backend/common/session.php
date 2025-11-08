@@ -6,7 +6,7 @@ declare(strict_types=1);
  * and when the project is exposed via tunnelling services (e.g. ngrok).
  *
  * This ensures:
- *  - cookie path is rooted at the project (`/public_html/`)
+ *  - cookie path is rooted at the project (`/`)
  *  - cookie domain matches the current request host (no hard-coded localhost)
  *  - Secure flag follows the current scheme (https → true)
  *  - HttpOnly + SameSite=Lax for better security while keeping first-party fetches working
@@ -45,9 +45,17 @@ function start_project_session(): void
     // スマホ対応: HTTPでもLaxを使用（Noneは不安定）
     $sameSite = 'Lax';
 
+    ini_set('session.cookie_path', '/');
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.cookie_samesite', $sameSite);
+    if ($isHttps) {
+        ini_set('session.cookie_secure', '1');
+    }
+
     $cookieParams = [
         'lifetime' => 86400,  // 24時間（スマホ対応のため0から変更）
-        'path' => '/public_html/',
+        'path' => '/',
         'secure' => $isHttps,
         'httponly' => true,
         'samesite' => $sameSite,
@@ -73,3 +81,5 @@ function start_project_session(): void
     // セッション開始をログに記録
     error_log("Session started: ID=" . session_id() . ", Data=" . json_encode($_SESSION));
 }
+
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * entry_api.php
  *
@@ -21,23 +21,6 @@ if ($userId <= 0) {
     exit;
 }
 
-// ========== 共通：config.phpを読み込む ==========
-$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
-if (!file_exists($configPath)) {
-    http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['ok' => false, 'error' => 'config.phpが見つかりません'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-require_once $configPath;
-
-// config.phpで定義された定数を使用
-$servername = DB_SERVER;
-$username   = DB_USERNAME;
-$password   = DB_PASSWORD;
-$dbname     = DB_NAME;
-// ===============================================
-
 $mode = $_GET['mode'] ?? null;
 
 if ($mode === 'proxy') {
@@ -49,8 +32,23 @@ if ($mode === 'proxy') {
         exit;
     }
 
+    // config.phpを読み込む
+    // $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+    $configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
+    if (!file_exists($configPath)) {
+        die("エラー: config.phpが見つかりません。パス: " . $configPath);
+    }
+    require_once $configPath;
+
+    // config.phpで定義された定数を使用
+    $servername = DB_SERVER;
+    $username   = DB_USERNAME;
+    $password   = DB_PASSWORD;
+    $dbname     = DB_NAME;
+
     // データベース接続
     $mysqli = new mysqli($servername, $username, $password, $dbname);
+    // $mysqli = new mysqli('localhost', 'backhold', 'backhold', 'back_db1');
     if ($mysqli->connect_error) {
         http_response_code(500);
         header('Content-Type: text/plain; charset=utf-8');
@@ -186,7 +184,6 @@ if ($mode === 'proxy') {
     exit;
 }
 
-// ========== 通常のJSON返却処理 ==========
 while (ob_get_level()) {
     ob_end_clean();
 }
@@ -194,6 +191,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 
+// $mysqli = new mysqli('localhost', 'backhold', 'backhold', 'back_db1');
 $mysqli = new mysqli($servername, $username, $password, $dbname);
 if ($mysqli->connect_error) {
     http_response_code(500);

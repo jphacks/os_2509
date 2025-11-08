@@ -44,50 +44,133 @@ INSERT INTO db5 (animal_name, description, gif_url) VALUES
 (
     'いのしし',
     'するどい きばを もった やまの どうぶつだよ。まっすぐ はしるのが とくいなんだ。',
-    'http://localhost/public_html/backend/gifs/boer.gif'
+    'http://localhost/backend/gifs/boer.gif'
 ),
 (
     'ねこ',
     '「にゃー」って なくよ。たかい ところに のぼるのが じょうずだよ。',
-    'http://localhost/public_html/backend/gifs/cat.gif'
+    'http://localhost/backend/gifs/cat.gif'
 ),
 (
     'うし',
     '「もー」って なくよ。みんなが のむ ぎゅうにゅうを だしてくれるんだ。',
-    'http://localhost/public_html/backend/gifs/cattle.gif'
+    'http://localhost/backend/gifs/cattle.gif'
 ),
 (
     'いぬ',
     '「わん」って なくよ。ひとと なかよしで、はなが とっても いいんだ。',
-    'http://localhost/public_html/backend/gifs/dog.gif'
+    'http://localhost/backend/gifs/dog.gif'
 ),
 (
     'ハムスター',
     'ちいさくて かわいいね。ほっぺに ごはんを いっぱい つめるのが とくいだよ。',
-    'http://localhost/public_html/backend/gifs/hamster.gif'
+    'http://localhost/backend/gifs/hamster.gif'
 ),
 (
     'ライオン',
     '「がおー」って つよいんだ。おうさま みたいに かっこいい たてがみが あるよ。',
-    'http://localhost/public_html/backend/gifs/lion.gif'
+    'http://localhost/backend/gifs/lion.gif'
 ),
 (
     'パンダ',
     'しろと くろの もようが かわいいね。ささ っていう はっぱが だいすき なんだ。',
-    'http://localhost/public_html/backend/gifs/panda.gif'
+    'http://localhost/backend/gifs/panda.gif'
 ),
 (
     'ぶた',
     '「ぶーぶー」って なくよ。ピンクいろで まるい はなが かわいいね。',
-    'http://localhost/public_html/backend/gifs/pig.gif'
+    'http://localhost/backend/gifs/pig.gif'
 ),
 (
     'うさぎ',
     'ながい おみみが かわいいね。ぴょんぴょん とぶのが じょうずだよ。',
-    'http://localhost/public_html/backend/gifs/rabbit.gif'
+    'http://localhost/backend/gifs/rabbit.gif'
 ),
 (
     'とら',
     'しましま もようが かっこいいね。おおきくて とっても つよいんだよ。',
-    'http://localhost/public_html/backend/gifs/tiger.gif'
+    'http://localhost/backend/gifs/tiger.gif'
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INSERT INTO db5 (animal_name, description, gif_url) VALUES
+(
+    'いのしし',
+    'するどい きばを もった やまの どうぶつだよ。まっすぐ はしるのが とくいなんだ。',
+    'https://tunagaridiary.com/backend/gifs/boer.gif'
+),
+(
+    'ねこ',
+    '「にゃー」って なくよ。たかい ところに のぼるのが じょうずだよ。',
+    'https://tunagaridiary.com/backend/gifs/cat.gif'
+),
+(
+    'うし',
+    '「もー」って なくよ。みんなが のむ ぎゅうにゅうを だしてくれるんだ。',
+    'https://tunagaridiary.com/backend/gifs/cattle.gif'
+),
+(
+    'いぬ',
+    '「わん」って なくよ。ひとと なかよしで、はなが とっても いいんだ。',
+    'https://tunagaridiary.com/backend/gifs/dog.gif'
+),
+(
+    'ハムスター',
+    'ちいさくて かわいいね。ほっぺに ごはんを いっぱい つめるのが とくいだよ。',
+    'https://tunagaridiary.com/backend/gifs/hamster.gif'
+),
+(
+    'ライオン',
+    '「がおー」って つよいんだ。おうさま みたいに かっこいい たてがみが あるよ。',
+    'https://tunagaridiary.com/backend/gifs/lion.gif'
+),
+(
+    'パンダ',
+    'しろと くろの もようが かわいいね。ささ っていう はっぱが だいすき なんだ。',
+    'https://tunagaridiary.com/backend/gifs/panda.gif'
+),
+(
+    'ぶた',
+    '「ぶーぶー」って なくよ。ピンクいろで まるい はなが かわいいね。',
+    'https://tunagaridiary.com/backend/gifs/pig.gif'
+),
+(
+    'うさぎ',
+    'ながい おみみが かわいいね。ぴょんぴょん とぶのが じょうずだよ。',
+    'https://tunagaridiary.com/backend/gifs/rabbit.gif'
+),
+(
+    'とら',
+    'しましま もようが かっこいいね。おおきくて とっても つよいんだよ。',
+    'https://tunagaridiary.com/backend/gifs/tiger.gif'
 );

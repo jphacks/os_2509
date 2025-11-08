@@ -33,10 +33,19 @@ $requestId = bin2hex(random_bytes(8));
 // 各リクエストでログをリセット（上書き）
 file_put_contents(SAVE_DATA_LOG_FILE, '', LOCK_EX);
 
-$servername = 'localhost';
-$username   = 'backhold';
-$password   = 'backhold';
-$dbname     = 'back_db1';
+// config.phpを読み込む
+// $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
+if (!file_exists($configPath)) {
+    die("エラー: config.phpが見つかりません。パス: " . $configPath);
+}
+require_once $configPath;
+
+// config.phpで定義された定数を使用
+$servername = DB_SERVER;
+$username   = DB_USERNAME;
+$password   = DB_PASSWORD;
+$dbname     = DB_NAME;
 
 date_default_timezone_set('Asia/Tokyo');
 $currentDatetime = date('Y-m-d H:i:s');

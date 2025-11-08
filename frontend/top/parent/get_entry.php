@@ -13,10 +13,20 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
 
-$servername = 'localhost';
-$username = 'backhold';
-$password = 'backhold';
-$dbname = 'back_db1';
+// ========== config.phpを読み込む ==========
+$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
+if (!file_exists($configPath)) {
+    echo json_encode(['ok' => false, 'message' => 'config.phpが見つかりません', 'entry' => null], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+require_once $configPath;
+
+// config.phpで定義された定数を使用
+$servername = DB_SERVER;
+$username   = DB_USERNAME;
+$password   = DB_PASSWORD;
+$dbname     = DB_NAME;
+// ==========================================
 
 $response = ['ok' => false, 'message' => '', 'entry' => null];
 

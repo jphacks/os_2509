@@ -211,7 +211,7 @@ class EggController {
    */
   async showRandomAnimal() {
     try {
-      const response = await fetch('/public_html/backend/gifs/get_random_gif.php');
+      const response = await fetch('/backend/gifs/get_random_gif.php');
       const result = await response.json();
       
       if (result.success && result.data) {

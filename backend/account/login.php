@@ -74,7 +74,8 @@ if (mb_strlen($name, 'UTF-8') > 120) {
     exit;
 }
 
-$configPath = __DIR__ . '/../../../private/config/config.php';
+// $configPath = __DIR__ . '/home/xs413160/tunagaridiary.com/private/config/config.php';
+$configPath = '/home/xs413160/tunagaridiary.com/private/config/config.php';
 
 if (!file_exists($configPath)) {
     http_response_code(500);
@@ -196,3 +197,6 @@ echo json_encode([
         'name' => $name,
     ],
 ], JSON_UNESCAPED_UNICODE);
+
+// $_SESSION['account_id'] = $userId;
+// $_SESSION['account_name'] = $name;

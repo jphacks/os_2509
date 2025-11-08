@@ -7,17 +7,42 @@ echo "--- 初期設定を開始します ---\n";
 
 // ライブラリと環境変数の読み込み
 require_once __DIR__ . '/../../../private/vendor/autoload.php';
+require_once '/home/xs413160/tunagaridiary.com/private/config/config.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
 $dotenv->load();
 
+// ========== ユーザーIDの取得 ==========
+$targetUserId = null;
+if (isset($argv[1])) {
+    $targetUserId = (int)$argv[1];
+}
+if ($targetUserId === null || $targetUserId <= 0) {
+    die("エラー: 処理対象のユーザーIDが指定されていません。\n使い方: php run_all.php <user_id>\n");
+}
+echo "処理対象ユーザーID: {$targetUserId}\n";
+
+// ========== ロック機構（重複実行防止） ==========
+$lockFile = __DIR__ . "/lock_user_{$targetUserId}.lock";
+$lockHandle = fopen($lockFile, 'w');
+if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {
+    fclose($lockHandle);
+    die("エラー: ユーザーID {$targetUserId} の処理が既に実行中です。\n");
+}
+echo "ロックを取得しました。\n";
+
 // データベース接続
-require_once __DIR__ . '/../../../private/config/config.php';
 $conn = getDbConnection();
 echo "データベースに正常に接続しました。\n";
 
 // APIキーの準備とOpenAIクライアントの初期化
 $apiKey = $_ENV['OPENAI_API_KEY'];
-if (empty($apiKey) || $apiKey === "sk-...") { $conn->close(); die("エラー: .envファイルに有効なOPENAI_API_KEYが設定されていません。\n"); }
+if (empty($apiKey) || $apiKey === "sk-...") { 
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $conn->close(); 
+    die("エラー: .envファイルに有効なOPENAI_API_KEYが設定されていません。\n"); 
+}
 $client = OpenAI::client($apiKey);
 echo "OpenAIクライアントの準備が完了しました。\n";
 
@@ -28,33 +53,50 @@ echo "OpenAIクライアントの準備が完了しました。\n";
 echo "\n--- STEP 1: イラスト指示文の生成を開始します ---\n";
 
 $sourceId = 0;
-$sourceUserId = 0;
 $sourceDate = '';
 $userPromptForAI = '';
 $targetDate = '';
 $sourceLocationForDB3 = '';
 
-// 最新の日付を特定
-$latest_date_sql = "SELECT date FROM db1 ORDER BY id DESC LIMIT 1";
-$result_date = $conn->query($latest_date_sql);
+// ========== 対象ユーザーの最新の日付を特定 ==========
+$latest_date_sql = "SELECT date FROM db1 WHERE user_id = ? ORDER BY id DESC LIMIT 1";
+$stmt_date = $conn->prepare($latest_date_sql);
+$stmt_date->bind_param("i", $targetUserId);
+$stmt_date->execute();
+$result_date = $stmt_date->get_result();
 if ($result_date && $result_date->num_rows > 0) {
     $targetDate = substr($result_date->fetch_assoc()['date'], 0, 10);
     echo "処理対象の日付: {$targetDate}\n";
 } else {
-    $conn->close(); die("エラー: db1にデータがありません。\n");
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $stmt_date->close();
+    $conn->close(); 
+    die("エラー: ユーザーID {$targetUserId} のdb1にデータがありません。\n");
 }
+$stmt_date->close();
 
-// ---- ステップA: 該当日の全データを取得 ----
+// ---- ステップA: 該当日・該当ユーザーの全データを取得 ----
 $sql = "SELECT db1.id, db1.user_id, db1.date, db1.soundtext, db1_1.location
         FROM db1
         LEFT JOIN db1_1 ON db1.date = db1_1.date AND db1.user_id = db1_1.user_id
-        WHERE DATE(db1.date) = ? AND db1.soundtext IS NOT NULL AND db1.soundtext != ''
+        WHERE DATE(db1.date) = ? AND db1.user_id = ? AND db1.soundtext IS NOT NULL AND db1.soundtext != ''
         ORDER BY db1.id ASC";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $targetDate);
+$stmt->bind_param("si", $targetDate, $targetUserId);
 $stmt->execute();
 $result = $stmt->get_result();
-echo "{$targetDate}付の有効なデータを{$result->num_rows}件見つけました。\n";
+echo "{$targetDate}付のユーザーID {$targetUserId} の有効なデータを{$result->num_rows}件見つけました。\n";
+
+if ($result->num_rows === 0) {
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $stmt->close();
+    $conn->close();
+    die("エラー: ユーザーID {$targetUserId} の有効なデータが見つかりませんでした。\n");
+}
 
 // ---- ステップB: locationでデータをグループ化 ----
 $groupedData = [];
@@ -62,17 +104,6 @@ $currentLocation = null;
 $groupIndex = -1;
 
 while ($row = $result->fetch_assoc()) {
-    $rowUserId = (int)($row['user_id'] ?? 0);
-    if ($rowUserId <= 0) {
-        continue;
-    }
-    if ($sourceUserId === 0) {
-        $sourceUserId = $rowUserId;
-    } elseif ($sourceUserId !== $rowUserId) {
-        // skip data belonging to other users that may share the same date
-        continue;
-    }
-
     $location = $row['location'] ?? '不明な場所';
 
     if ($location !== $currentLocation) {
@@ -98,23 +129,18 @@ foreach ($groupedData as $group) {
     $promptParts[] = "場所：" . $group['location'] . "\nプロンプト：" . $combinedText;
 }
 
-if ($sourceUserId === 0) {
-    $conn->close(); die("エラー: 対象ユーザーのデータが見つかりません。\n");
-}
-
-echo "対象ユーザーID: {$sourceUserId}\n";
-
 if (!empty($promptParts)) {
     $userPromptForAI = implode("\n\n", $promptParts);
     echo "AIに渡すテキストを作成しました (代表ID: {$sourceId})。\n";
-
-    // ★★★ 追加箇所: 結合した文章をコンソールに出力 ★★★
     echo "==================== AIに渡す結合後テキスト ====================\n";
     echo $userPromptForAI . "\n";
     echo "=============================================================\n";
-
 } else {
-    $conn->close(); die("エラー: 有効なデータが見つかりませんでした。\n");
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $conn->close(); 
+    die("エラー: 有効なデータが見つかりませんでした。\n");
 }
 
 // ---- ステップD: AIに指示文の生成を依頼 ----
@@ -150,7 +176,11 @@ try {
     echo $imagePrompt . "\n";
     echo "========================================================\n";
 } catch (Exception $e) {
-    $conn->close(); die("APIエラー (STEP 1): " . $e->getMessage() . "\n");
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $conn->close(); 
+    die("APIエラー (STEP 1): " . $e->getMessage() . "\n");
 }
 
 // ---- ステップE: 生成された指示文をdb2に保存 ----
@@ -161,7 +191,7 @@ if ($result_id_db2) { $nextId_db2 = ($result_id_db2->fetch_assoc()['max_id'] ?? 
 
 $insert_sql_db2 = "INSERT INTO db2 (id, user_id, date, soundsum, place) VALUES (?, ?, ?, ?, ?)";
 $insert_stmt_db2 = $conn->prepare($insert_sql_db2);
-$insert_stmt_db2->bind_param("iisss", $nextId_db2, $sourceUserId, $sourceDate, $imagePrompt, $sourceLocationForDB3);
+$insert_stmt_db2->bind_param("iisss", $nextId_db2, $targetUserId, $sourceDate, $imagePrompt, $sourceLocationForDB3);
 if ($insert_stmt_db2->execute()) {
     echo "db2テーブルへの保存が成功しました (ID: {$nextId_db2})。\n";
 }
@@ -185,7 +215,11 @@ try {
     echo "画像が生成されました！\n";
     echo "画像URL: " . $imageUrl . "\n";
 } catch (Exception $e) {
-    $conn->close(); die("APIエラー (STEP 2): " . $e->getMessage() . "\n");
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $conn->close(); 
+    die("APIエラー (STEP 2): " . $e->getMessage() . "\n");
 }
 
 
@@ -232,39 +266,112 @@ try {
     echo $diarySentence . "\n";
     echo "======================================================\n";
 } catch (Exception $e) {
-    $conn->close(); die("APIエラー (STEP 3): " . $e->getMessage() . "\n");
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+    @unlink($lockFile);
+    $conn->close(); 
+    die("APIエラー (STEP 3): " . $e->getMessage() . "\n");
 }
-
 
 // =================================================================
 // STEP 4: 最終結果をdb3に保存する
 // =================================================================
-if ($imageUrl !== null && $diarySentence !== '') {
-    echo "\n--- STEP 4: 最終結果をdb3に保存します ---\n";
+echo "\n--- STEP 4: 最終結果をdb3に保存します ---\n";
 
+// ========== デバッグ情報の出力 ==========
+echo "=== デバッグ情報 ===\n";
+echo "imageUrl: " . ($imageUrl ?? 'null') . "\n";
+echo "diarySentence: " . ($diarySentence ?? 'null') . "\n";
+echo "sourceId: {$sourceId}\n";
+echo "targetUserId: {$targetUserId}\n";
+echo "sourceDate: {$sourceDate}\n";
+echo "sourceLocationForDB3: {$sourceLocationForDB3}\n";
+echo "===================\n";
+
+if ($imageUrl === null) {
+    echo "警告: imageUrlがnullです。画像生成に失敗している可能性があります。\n";
+}
+
+if ($diarySentence === '') {
+    echo "警告: diarySentenceが空です。文章生成に失敗している可能性があります。\n";
+}
+
+if ($imageUrl !== null && $diarySentence !== '') {
+    // 既存データの確認
     $check_sql_db3 = "SELECT id FROM db3 WHERE id = ? AND user_id = ?";
     $check_stmt_db3 = $conn->prepare($check_sql_db3);
-    $check_stmt_db3->bind_param("ii", $sourceId, $sourceUserId);
-    $check_stmt_db3->execute();
-    if ($check_stmt_db3->get_result()->num_rows > 0) {
-        echo "ID: {$sourceId}, user_id: {$sourceUserId} は既にdb3に存在するため、スキップしました。\n";
+    
+    if (!$check_stmt_db3) {
+        echo "エラー: CHECK準備に失敗: " . $conn->error . "\n";
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
+        @unlink($lockFile);
+        $conn->close();
+        die();
+    }
+    
+    $check_stmt_db3->bind_param("ii", $sourceId, $targetUserId);
+    if (!$check_stmt_db3->execute()) {
+        echo "エラー: CHECK実行に失敗: " . $check_stmt_db3->error . "\n";
+        $check_stmt_db3->close();
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
+        @unlink($lockFile);
+        $conn->close();
+        die();
+    }
+    
+    $check_result = $check_stmt_db3->get_result();
+    $existingRows = $check_result->num_rows;
+    echo "既存データ確認: {$existingRows}件\n";
+    
+    if ($existingRows > 0) {
+        echo "ID: {$sourceId}, user_id: {$targetUserId} は既にdb3に存在するため、スキップしました。\n";
     } else {
+        echo "新規データを挿入します...\n";
+        
         $insert_sql_db3 = "INSERT INTO db3 (id, user_id, date, sentence, place, image) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt_insert_db3 = $conn->prepare($insert_sql_db3);
-        $stmt_insert_db3->bind_param("iissss", $sourceId, $sourceUserId, $sourceDate, $diarySentence, $sourceLocationForDB3, $imageUrl);
+        
+        if (!$stmt_insert_db3) {
+            echo "エラー: INSERT準備に失敗: " . $conn->error . "\n";
+            $check_stmt_db3->close();
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+            @unlink($lockFile);
+            $conn->close();
+            die();
+        }
+        
+        $stmt_insert_db3->bind_param("iissss", $sourceId, $targetUserId, $sourceDate, $diarySentence, $sourceLocationForDB3, $imageUrl);
+        
+        echo "INSERT実行中...\n";
         if ($stmt_insert_db3->execute()) {
-            echo "db3テーブルへのデータ保存が成功しました！ (ID: {$sourceId}, user_id: {$sourceUserId})\n";
+            echo "✅ db3テーブルへのデータ保存が成功しました！ (ID: {$sourceId}, user_id: {$targetUserId})\n";
+            echo "影響を受けた行数: " . $stmt_insert_db3->affected_rows . "\n";
         } else {
-            echo "エラー (db3): " . $stmt_insert_db3->error . "\n";
+            echo "❌ エラー (db3 INSERT): " . $stmt_insert_db3->error . "\n";
+            echo "SQLエラー番号: " . $stmt_insert_db3->errno . "\n";
         }
         $stmt_insert_db3->close();
     }
     $check_stmt_db3->close();
+} else {
+    echo "⚠️ imageUrlまたはdiarySentenceが空のため、db3への保存をスキップしました。\n";
+    if ($imageUrl === null) {
+        echo "  - imageUrlがnullです\n";
+    }
+    if ($diarySentence === '') {
+        echo "  - diarySentenceが空です\n";
+    }
 }
 
 
 // =================================================================
 // FINAL STEP: 終了処理
 // =================================================================
+flock($lockHandle, LOCK_UN);
+fclose($lockHandle);
+@unlink($lockFile);
 $conn->close();
 echo "\n全ての処理が完了しました。\n";

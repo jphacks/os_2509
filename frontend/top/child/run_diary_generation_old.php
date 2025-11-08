@@ -110,11 +110,8 @@ try {
     error_log('run_diary_generation.php: ログ初期化に失敗しました: ' . $e->getMessage());
 }
 
-// ========== ユーザーIDを取得 ==========
-$userId = (int)$account['id'];
-
 diaryLog('INFO', '絵日記生成トリガーを受信しました', [
-    'user_id' => $userId,
+    'user_id' => (int)$account['id'],
     'content_type' => $contentType,
     'raw_length' => strlen($rawBody),
     'payload' => $triggerPayload,
@@ -143,7 +140,6 @@ try {
     diaryLog('INFO', 'バックグラウンド処理を開始します', [
         'php_executable' => $phpExecutablePath,
         'project_root' => $projectRoot,
-        'user_id' => $userId,
         'debug_id' => $debugId,
     ]);
 
@@ -161,19 +157,16 @@ try {
     $command1 = 'cd "' . $getPlaceDir . '" && "' . $phpExecutablePath . '" "' . $getPlaceFile . '" 2>&1';
     runDiaryCommand('get_place.php', $command1, $debugId);
 
-    // ========== ユーザーIDを引数として渡す ==========
-    $command2 = 'cd "' . $generateDiaryDir . '" && "' . $phpExecutablePath . '" "' . $generateDiaryFile . '" ' . $userId . ' 2>&1';
+    $command2 = 'cd "' . $generateDiaryDir . '" && "' . $phpExecutablePath . '" "' . $generateDiaryFile . '" 2>&1';
     runDiaryCommand('run_all.php', $command2, $debugId);
 
     diaryLog('INFO', '全てのプロセスが正常に完了しました', [
-        'user_id' => $userId,
         'debug_id' => $debugId,
     ]);
 } catch (Throwable $e) {
     $context = [
         'message' => $e->getMessage(),
         'file' => $e->getFile() . ':' . $e->getLine(),
-        'user_id' => $userId,
         'debug_id' => $debugId,
     ];
 

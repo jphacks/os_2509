@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // },
 
         api: {
-            root: '/public_html/',
+            root: '/',
             get saveData() {
                 return `${this.root}frontend/top/child/save_data.php`;
             },
