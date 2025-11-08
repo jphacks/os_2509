@@ -1,5 +1,8 @@
-[2025-11-08 21:12:58][INFO][7ff6634130fc8484] リクエストを受信しました {"method":"POST","content_type":"application/x-www-form-urlencoded; charset=UTF-8","raw_length":41,"user_id":3}
-[2025-11-08 21:12:58][DEBUG][7ff6634130fc8484] 解析後のペイロード {"payload":{"latitude":"35.7433344","longitude":"139.8439936"}}
-[2025-11-08 21:12:58][DEBUG][7ff6634130fc8484] 音声テキストが未入力または空文字です
-[2025-11-08 21:13:02][ERROR][7ff6634130fc8484] 保存処理で例外が発生しました {"error":"対象のコンピューターによって拒否されたため、接続できませんでした。"}
-[2025-11-08 21:13:02][INFO][7ff6634130fc8484] レスポンスを返却しました {"status":"error","saved":{"db0_location":false,"db1_text":false}}
+[2025-11-08 21:40:29][INFO][d1328dada30dab8e] リクエストを受信しました {"method":"POST","content_type":"application/x-www-form-urlencoded; charset=UTF-8","raw_length":41,"user_id":2}
+[2025-11-08 21:40:29][DEBUG][d1328dada30dab8e] 解析後のペイロード {"payload":{"latitude":"35.7433344","longitude":"139.8439936"}}
+[2025-11-08 21:40:29][DEBUG][d1328dada30dab8e] 音声テキストが未入力または空文字です
+[2025-11-08 21:40:29][INFO][d1328dada30dab8e] DB接続に成功しました
+[2025-11-08 21:40:29][INFO][d1328dada30dab8e] 位置情報を保存しました {"latitude":35.7433344,"longitude":139.8439936}
+[2025-11-08 21:40:29][WARN][d1328dada30dab8e] 音声テキストが有効ではないため保存しませんでした {"raw_text_length":0,"preview":""}
+[2025-11-08 21:40:29][INFO][d1328dada30dab8e] トランザクションをコミットしました {"saved":{"db0_location":true,"db1_text":false}}
+[2025-11-08 21:40:29][INFO][d1328dada30dab8e] レスポンスを返却しました {"status":"success","saved":{"db0_location":true,"db1_text":false}}
