@@ -27,7 +27,8 @@ if (mb_strlen($name, 'UTF-8') > 120) {
     exit;
 }
 
-require_once __DIR__ . '/../config/config.php';
+// require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../../private/config/config.php';
 
 $conn = getDbConnection();
 

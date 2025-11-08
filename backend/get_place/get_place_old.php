@@ -5,26 +5,27 @@
  * - 滞在検出＋Google Places API（v1）で施設名を取得
  * - 結果を db1_1 に出力
  *
- * DB接続: private/config/config.php（mysqli）
- * Google APIキー: private/env/.env から読み込み
+ * DB接続: backend/config/config.php（mysqli）
+ * Google APIキー: 同ディレクトリ内の config.php
  */
 
 ini_set('memory_limit', '1024M');
 mb_internal_encoding('UTF-8');
 
-// ====== Composer autoload と .env 読み込み ======
-require_once __DIR__ . '/../../../private/vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
-$dotenv->load();
-
 // ====== DB接続設定読み込み ======
-require_once __DIR__ . '/../../../private/config/config.php';
+// require_once __DIR__ . '/config/config.php';  // mysqli版
+require_once dirname(__DIR__) . '/config/config.php';  // <- 1階層上の /config/config.php
 $conn = getDbConnection();
 
-// ====== Google APIキー取得 ======
-$GOOGLE_API_KEY = $_ENV['GOOGLE_API_KEY'] ?? null;
+// ====== Google APIキー読み込み ======
+$api_cfg_path = __DIR__ . '/config.php';
+if (!is_readable($api_cfg_path)) {
+    die("❌ Google APIキー設定ファイル（config.php）が見つかりません\n");
+}
+$cfg = include $api_cfg_path;
+$GOOGLE_API_KEY = $cfg['GOOGLE_API_KEY'] ?? null;
 if (!$GOOGLE_API_KEY) {
-    die("❌ .env に GOOGLE_API_KEY が設定されていません\n");
+    die("❌ config.php に GOOGLE_API_KEY が設定されていません\n");
 }
 
 // ====== パラメータ ======
@@ -170,8 +171,22 @@ class Tracker {
         ];
     }
 
+    // private function avg_speed($pts) {
+    //     $n = count($pts);
+    //     if ($n < 2) return 0;
+    //     $dist = 0;
+    //     for ($i=1; $i<$n; $i++)
+    //         $dist += haversine_m($pts[$i-1][0], $pts[$i-1][1], $pts[$i][0], $pts[$i][1]);
+    //     $dt = max(1, $pts[$n-1][2] - $pts[0][2]);
+    //     return $dist / $dt;
+    // }
+    // (変更後)
     private function avg_speed($pts) {
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+        // ↓↓↓↓↓↓ この行を追加 ↓↓↓↓↓↓
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
         $pts = array_values($pts); // 配列のキーを 0, 1, 2... に振り直す
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★
         
         $n = count($pts);
         if ($n < 2) return 0;

@@ -22,7 +22,7 @@
   if (yEl) yEl.textContent = new Date().getFullYear();
 
   // 遷移先
-  const ENTRY_PAGE = '/os_2509/frontend/top/parent/parent.html';
+  const ENTRY_PAGE = '/public_html/frontend/top/parent/parent.html';
 
   const startOfWeek = 0;
   const dowHead = ['日','月','火','水','木','金','土'];
@@ -238,7 +238,7 @@
     renderMonth(viewY, viewM+1);
 
     try{
-      const url = '/os_2509/frontend/top/calendar/diary_dates.php?ts=' + Date.now();
+      const url = '/public_html/frontend/top/calendar/diary_dates.php?ts=' + Date.now();
       const res = await fetch(url, { cache:'no-store', credentials:'same-origin' });
       if(!res.ok){
         console.error('diary_dates HTTP error', res.status, await res.text());

@@ -2,22 +2,30 @@
 
 // 1. ライブラリと環境変数の読み込み
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
+require __DIR__ . '\vendor\autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/env');
 $dotenv->load();
 
 
-// 2. データベース接続
+// 2. データベース接続情報
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/config/config.php';
-$conn = getDbConnection();
-echo "データベースに正常に接続しました。\n";
+$servername = "localhost";
+$username   = "root";
+$password   = "";
+$dbname     = "back_db1"; // あなたのデータベース名
 
 
 // 3. db2テーブルから最新のIDとプロンプトを取得
 // --------------------------------------------------
 $longText = ""; // プロンプト用の変数
 $sourceId = 0;  // 更新対象のIDを保存する変数
+
+// データベースに接続
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("データベース接続エラー: " . $conn->connect_error . "\n");
+}
+echo "データベースに正常に接続しました。\n";
 
 // ---- db2から最新のIDとsoundsumを1件取得 ----
 $sql = "SELECT id, soundsum FROM db2 ORDER BY id DESC LIMIT 1";

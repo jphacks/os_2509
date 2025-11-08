@@ -42,34 +42,16 @@ function start_project_session(): void
         }
     }
 
-    // スマホ対応: HTTPでもLaxを使用（Noneは不安定）
-    $sameSite = 'Lax';
+    $sameSite = $isHttps ? 'None' : 'Lax';
 
     $cookieParams = [
-        'lifetime' => 86400,  // 24時間（スマホ対応のため0から変更）
+        'lifetime' => 0,
         'path' => '/public_html/',
         'secure' => $isHttps,
         'httponly' => true,
         'samesite' => $sameSite,
     ];
 
-    // デバッグログ（本番環境では削除可能）
-    error_log("Session config: " . json_encode([
-        'lifetime' => $cookieParams['lifetime'],
-        'path' => $cookieParams['path'],
-        'secure' => $cookieParams['secure'],
-        'samesite' => $cookieParams['samesite'],
-        'https' => $isHttps,
-        'host' => $_SERVER['HTTP_HOST'] ?? 'unknown',
-    ]));
-
     session_set_cookie_params($cookieParams);
-    
-    // ガベージコレクションの設定も延長
-    ini_set('session.gc_maxlifetime', '86400');
-    
     session_start();
-    
-    // セッション開始をログに記録
-    error_log("Session started: ID=" . session_id() . ", Data=" . json_encode($_SESSION));
 }

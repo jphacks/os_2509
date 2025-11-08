@@ -8,12 +8,12 @@
   <!-- フォント -->
   <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Sawarabi+Mincho&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <!-- スタイル -->
-  <link rel="stylesheet" href="/os_2509/frontend/top/child/assets/css/style.css" />
-  <script src="/os_2509/frontend/shared/auth.js" data-root="/os_2509/" defer></script>
+  <link rel="stylesheet" href="/public_html/frontend/top/child/assets/css/style.css" />
+  <script src="/public_html/frontend/shared/auth.js" data-root="/public_html/" defer></script>
 </head>
 <body>
   <!-- 左上：もどる -->
-  <a href="/os_2509/frontend/top/select/select_page.html" class="back-btn" id="backBtn">←もどる</a>
+  <a href="/public_html/frontend/top/select/select_page.html" class="back-btn" id="backBtn">←もどる</a>
 
   <!-- ▼ ノート背景（まるまんま） -->
   <div class="page">
@@ -77,13 +77,13 @@
   <div class="copyright">© 2025 つながり日記</div>
 
   <!-- 機能JS（そのまま） -->
-  <script src="/os_2509/frontend/top/child/assets/js/app.js"></script>
+  <script src="/public_html/frontend/top/child/assets/js/app.js"></script>
   <script>
     // もどる動作：履歴があれば戻る／なければトップへ
     document.getElementById('backBtn').addEventListener('click', function(e){
       e.preventDefault();
       if (history.length > 1) history.back();
-      else window.location.href = '/os_2509/frontend/top/select/select_page.html';
+      else window.location.href = '/public_html/frontend/top/select/select_page.html';
     });
   </script>
 </body>

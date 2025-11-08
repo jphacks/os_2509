@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/os_2509/frontend/shared/auth.js" data-root="/os_2509/" defer></script>
+    <script src="/public_html/frontend/shared/auth.js" data-root="/public_html/" defer></script>
     <title>音声録音システム</title>
     <style>
         body {
@@ -178,7 +178,7 @@
             function saveToDatabase(text) {
                 const location = locationInput.value.trim();
                 
-                fetch('/os_2509/frontend/record_api/save_audio_text.php', {
+                fetch('/public_html/frontend/record_api/save_audio_text.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

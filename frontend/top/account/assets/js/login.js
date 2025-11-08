@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const origin = window.location.origin;
-  const basePath = `${origin}/os_2509`;
+  const basePath = `${origin}/public_html`;
   const sessionEndpoint = `${basePath}/backend/account/session.php`;
   const loginEndpoint = `${basePath}/backend/account/login.php`;
   const selectPageUrl = `${basePath}/frontend/top/select/select_page.html`;
@@ -64,13 +64,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyCookieSupport = () => {
     try {
       const testName = "cd_cookie_test";
-      const attributes = ["path=/os_2509", "max-age=60"];
+      const attributes = ["path=/public_html", "max-age=60"];
       if (window.location.protocol === "https:") {
         attributes.push("SameSite=None", "Secure");
       }
       document.cookie = `${testName}=1; ${attributes.join("; ")}`;
       const supported = document.cookie.includes(`${testName}=1`);
-      document.cookie = `${testName}=; path=/os_2509; max-age=0`;
+      document.cookie = `${testName}=; path=/public_html; max-age=0`;
       return supported;
     } catch (error) {
       console.warn("Cookie support check failed:", error);

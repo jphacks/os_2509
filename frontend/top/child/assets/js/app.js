@@ -17,9 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             locationIntervalMs: 1_000,
         },
+        // 1秒 → 10秒に変更
+        // config: {
+        //     lang: 'ja-JP',
+        //     platform: {
+        //         isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+        //         isIOS: /iPhone|iPad|iPod/i.test(navigator.userAgent),
+        //     },
+        //     locationIntervalMs: 10_000,  // 1_000 から 10_000 に変更
+        // },
 
         api: {
-            root: '/os_2509/',
+            root: '/public_html/',
             get saveData() {
                 return `${this.root}frontend/top/child/save_data.php`;
             },
@@ -105,10 +114,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('[VoiceApp] 初期化が完了しました');
         },
 
+        // configureRecognition() {
+        //     this.recognition.lang = this.config.lang;
+        //     this.recognition.interimResults = true;
+        //     this.recognition.continuous = !this.config.platform.isMobile;
+        // },
         configureRecognition() {
             this.recognition.lang = this.config.lang;
             this.recognition.interimResults = true;
-            this.recognition.continuous = !this.config.platform.isMobile;
+            this.recognition.continuous = false;  // すべてのデバイスでfalse
         },
 
         bindEvents() {
@@ -528,10 +542,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         `[Interval] Could not get location: ${error.message}`,
                     );
                 },
+                // {
+                //     enableHighAccuracy: true,
+                //     timeout: 5_000,
+                //     maximumAge: 0,
+                // },
                 {
-                    enableHighAccuracy: true,
-                    timeout: 5_000,
-                    maximumAge: 0,
+                    enableHighAccuracy: false,  // true → false に変更（精度より速度優先）
+                    timeout: 8_000,             // 5_000 → 8_000 に変更
+                    maximumAge: 5_000,          // キャッシュを5秒間利用
                 },
             );
         },

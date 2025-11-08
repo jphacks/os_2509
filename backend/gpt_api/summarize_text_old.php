@@ -2,16 +2,17 @@
 
 // 1. ライブラリと環境変数の読み込み
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
+require __DIR__ . '/vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/env');
 $dotenv->load();
 
 
-// 2. データベース接続
+// 2. データベース接続情報
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/config/config.php';
-$conn = getDbConnection();
-echo "データベースに正常に接続しました。\n";
+$servername = "localhost";
+$username   = "backhold";
+$password   = "backhold";
+$dbname     = "back_db1"; // 正しいデータベース名
 
 
 // 3. データベースから元データを取得
@@ -20,6 +21,13 @@ $sourceId = 0;
 $sourceDate = '';
 $sourceSoundtext = '';
 $sourceLocation = ''; // locationを格納する変数を追加
+
+// データベースに接続
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("データベース接続エラー: " . $conn->connect_error . "\n");
+}
+echo "データベースに正常に接続しました。\n";
 
 // ---- ステップA: db1から最新のid, date, soundtextを取得 ----
 $sql_db1 = "SELECT id, date, soundtext FROM db1 ORDER BY id DESC LIMIT 1";
@@ -35,6 +43,22 @@ if ($result_db1 && $result_db1->num_rows > 0) {
     $conn->close();
     die("エラー: db1テーブルにデータが見つかりませんでした。\n");
 }
+
+// // ---- ステップB: 取得したIDを元に、db1_1から場所(location)を取得 ----
+// $sql_db1_1 = "SELECT location FROM db1_1 WHERE id = ?";
+// $stmt_db1_1 = $conn->prepare($sql_db1_1);
+// $stmt_db1_1->bind_param("i", $sourceId);
+// $stmt_db1_1->execute();
+// $result_db1_1 = $stmt_db1_1->get_result();
+// if ($result_db1_1 && $result_db1_1->num_rows > 0) {
+//     $row_db1_1 = $result_db1_1->fetch_assoc();
+//     $sourceLocation = $row_db1_1['location'];
+//     echo "db1_1テーブルから場所を取得しました: {$sourceLocation}\n";
+// } else {
+//     $sourceLocation = "不明な場所";
+//     echo "警告: db1_1テーブルで対応する場所が見つかりませんでした (ID: {$sourceId})。デフォルト値を設定します。\n";
+// }
+// $stmt_db1_1->close();
 
 // ---- ステップB: 取得した日付を元に、db1_1から直近の場所(location)を取得 ----
 // $sourceDate (例: '2025-10-19 10:30:00') を元に、

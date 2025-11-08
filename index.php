@@ -7,7 +7,7 @@ start_project_session();
 $loggedIn = isset($_SESSION['account_id'], $_SESSION['account_name']);
 
 if ($loggedIn) {
-    header('Location: /os_2509/frontend/top/select/select_page.html', true, 302);
+    header('Location: /public_html/frontend/top/select/select_page.html', true, 302);
     exit;
 }
 

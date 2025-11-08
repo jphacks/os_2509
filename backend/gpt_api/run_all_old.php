@@ -6,13 +6,20 @@
 echo "--- 初期設定を開始します ---\n";
 
 // ライブラリと環境変数の読み込み
-require_once __DIR__ . '/../../../private/vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
+require __DIR__ . '\vendor\autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '\env');
 $dotenv->load();
 
-// データベース接続
-require_once __DIR__ . '/../../../private/config/config.php';
-$conn = getDbConnection();
+// データベース接続情報
+$servername = "localhost";
+$username   = "root";
+$password   = "";
+$dbname     = "back_db1";
+
+// データベースに接続
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) { die("データベース接続エラー: " . $conn->connect_error . "\n"); }
+
 echo "データベースに正常に接続しました。\n";
 
 // APIキーの準備とOpenAIクライアントの初期化

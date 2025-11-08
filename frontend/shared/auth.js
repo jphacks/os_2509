@@ -6,7 +6,7 @@
 
   const normalizeRoot = (value) => {
     if (!value) {
-      return "/os_2509/";
+      return "/public_html/";
     }
     if (/^https?:\/\//i.test(value)) {
       const url = new URL(value);

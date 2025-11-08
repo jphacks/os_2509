@@ -1,0 +1,93 @@
+connection_diary/
+├── index.php              (トップページ)
+├── config/
+│   └── config.php        (DB設定)
+├── database/
+│   └── table.php         (テーブル作成)
+├── record/
+│   └── record.html       (音声録音画面)
+└── api/
+    └── save_audio_text.php (保存API)
+
+git init
+git add .
+git commit -m "first commit"
+git remote add origin url
+git push -u origin master
+
+composer require openai-php/client
+composer require vlucas/phpdotenv
+
+cd backend/gpt_api 
+# Composerインストーラーをダウンロード
+C:\xampp\php\php.exe -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+# Composerをインストール
+C:\xampp\php\php.exe composer-setup.php
+# インストーラーを削除
+C:\xampp\php\php.exe -r "unlink('composer-setup.php');"
+
+# OpenAI PHPクライアントをインストール
+C:\xampp\php\php.exe composer.phar require openai-php/client
+C:\xampp\php\php.exe composer.phar require vlucas/phpdotenv
+
+
+# プロジェクトディレクトリに移動
+cd C:\xampp\htdocs\public_html\backend\gpt_api
+# 問題のファイルをGit履歴から削除
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch env/.env" --prune-empty --tag-name-filter cat -- --all
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch backend/get_location/google_api.php" --prune-empty --tag-name-filter cat -- --all
+
+git commit --amend --no-edit
+
+
+INSERT INTO db5 (animal_name, description, gif_url) VALUES
+(
+    'いのしし',
+    'するどい きばを もった やまの どうぶつだよ。まっすぐ はしるのが とくいなんだ。',
+    'http://localhost/public_html/backend/gifs/boer.gif'
+),
+(
+    'ねこ',
+    '「にゃー」って なくよ。たかい ところに のぼるのが じょうずだよ。',
+    'http://localhost/public_html/backend/gifs/cat.gif'
+),
+(
+    'うし',
+    '「もー」って なくよ。みんなが のむ ぎゅうにゅうを だしてくれるんだ。',
+    'http://localhost/public_html/backend/gifs/cattle.gif'
+),
+(
+    'いぬ',
+    '「わん」って なくよ。ひとと なかよしで、はなが とっても いいんだ。',
+    'http://localhost/public_html/backend/gifs/dog.gif'
+),
+(
+    'ハムスター',
+    'ちいさくて かわいいね。ほっぺに ごはんを いっぱい つめるのが とくいだよ。',
+    'http://localhost/public_html/backend/gifs/hamster.gif'
+),
+(
+    'ライオン',
+    '「がおー」って つよいんだ。おうさま みたいに かっこいい たてがみが あるよ。',
+    'http://localhost/public_html/backend/gifs/lion.gif'
+),
+(
+    'パンダ',
+    'しろと くろの もようが かわいいね。ささ っていう はっぱが だいすき なんだ。',
+    'http://localhost/public_html/backend/gifs/panda.gif'
+),
+(
+    'ぶた',
+    '「ぶーぶー」って なくよ。ピンクいろで まるい はなが かわいいね。',
+    'http://localhost/public_html/backend/gifs/pig.gif'
+),
+(
+    'うさぎ',
+    'ながい おみみが かわいいね。ぴょんぴょん とぶのが じょうずだよ。',
+    'http://localhost/public_html/backend/gifs/rabbit.gif'
+),
+(
+    'とら',
+    'しましま もようが かっこいいね。おおきくて とっても つよいんだよ。',
+    'http://localhost/public_html/backend/gifs/tiger.gif'
+);

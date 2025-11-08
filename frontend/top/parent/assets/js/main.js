@@ -6,7 +6,7 @@ const paramId   = q.get('id');
 const paramDate = q.get('date');
 
 // API
-const API = '/os_2509/frontend/top/parent/entry_api.php';
+const API = '/public_html/frontend/top/parent/entry_api.php';
 
 // DOM
 const title = document.getElementById('title');
@@ -148,7 +148,7 @@ if (document.fonts && document.fonts.ready){ document.fonts.ready.then(()=>drawN
 document.getElementById('backBtn').addEventListener('click', (e)=>{
     e.preventDefault();
     if (history.length > 1) history.back();
-    else window.location.href = '/os_2509/frontend/top/calendar/calendar.html';
+    else window.location.href = '/public_html/frontend/top/calendar/calendar.html';
 });
 
 // スワイプ & 角めくり

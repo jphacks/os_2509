@@ -2,16 +2,17 @@
 
 // 1. ライブラリと環境変数の読み込み
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../../private/env');
+require __DIR__ . '\vendor\autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/env');
 $dotenv->load();
 
 
-// 2. データベース接続
+// 2. データベース接続情報
 // --------------------------------------------------
-require_once __DIR__ . '/../../../private/config/config.php';
-$conn = getDbConnection();
-echo "データベースに正常に接続しました。\n";
+$servername = "localhost";
+$username   = "root";
+$password   = "";
+$dbname     = "back_db1"; // あなたのデータベース名
 
 
 // 3. データベースからプロンプトと関連データを取得
@@ -19,6 +20,13 @@ echo "データベースに正常に接続しました。\n";
 $prompt = "";
 $sourceId = 0;
 $sourceDate = '';
+
+// データベースに接続
+$conn = new mysqli($servername, $username, $password, $dbname);
+if ($conn->connect_error) {
+    die("データベース接続エラー: " . $conn->connect_error . "\n");
+}
+echo "データベースに正常に接続しました。\n";
 
 // ---- db2から最新のID, Date, プロンプト(soundsum)を取得 ----
 $sql_db2 = "SELECT id, date, soundsum FROM db2 ORDER BY id DESC LIMIT 1";
@@ -92,12 +100,12 @@ if ($imageData !== null) {
     if ($check_result->num_rows > 0) {
         echo "ID: {$sourceId} は既にdb3に存在するため、処理をスキップしました。\n";
     } else {
-        // INSERT文をid, date, imageのみに変更
+        // ★★★ 修正1: INSERT文をid, date, imageのみに変更 ★★★
         $insert_sql = "INSERT INTO db3 (id, date, image) VALUES (?, ?, ?)";
         $stmt_insert = $conn->prepare($insert_sql);
         
         $null = NULL; // send_long_data用
-        // bind_paramをid, date, imageに対応するように変更
+        // ★★★ 修正2: bind_paramをid, date, imageに対応するように変更 ★★★
         $stmt_insert->bind_param("isb", $sourceId, $sourceDate, $null);
         
         // 大きなデータを安全に送信
